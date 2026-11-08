@@ -9,10 +9,17 @@ namespace ClinicaSaludBienestar
 {
     public class frmPrincipal : Form
     {
-        private readonly Color oscuro = Color.FromArgb(18, 63, 73);
-        private readonly Color turquesa = Color.FromArgb(20, 125, 134);
-        private readonly Color fondo = Color.FromArgb(240, 247, 247);
-        private readonly Color gris = Color.FromArgb(105, 127, 132);
+        private readonly Color oscuro =
+            Color.FromArgb(18, 63, 73);
+
+        private readonly Color turquesa =
+            Color.FromArgb(20, 125, 134);
+
+        private readonly Color fondo =
+            Color.FromArgb(240, 247, 247);
+
+        private readonly Color gris =
+            Color.FromArgb(105, 127, 132);
 
         private Panel panelContenido;
 
@@ -28,9 +35,9 @@ namespace ClinicaSaludBienestar
             CrearInterfaz();
         }
 
+        // Crear interfaz principal
         private void CrearInterfaz()
         {
-            // Menú lateral
             Panel lateral = new Panel();
             lateral.Dock = DockStyle.Left;
             lateral.Width = 235;
@@ -39,7 +46,8 @@ namespace ClinicaSaludBienestar
 
             Label logo = new Label();
             logo.Text = "+  SALUD Y\n    BIENESTAR";
-            logo.Font = new Font("Segoe UI", 17F, FontStyle.Bold);
+            logo.Font = new Font(
+                "Segoe UI", 17F, FontStyle.Bold);
             logo.ForeColor = Color.White;
             logo.Location = new Point(22, 35);
             logo.Size = new Size(210, 90);
@@ -47,41 +55,54 @@ namespace ClinicaSaludBienestar
 
             Label subtitulo = new Label();
             subtitulo.Text = "GESTIÓN CLÍNICA";
-            subtitulo.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            subtitulo.ForeColor = Color.FromArgb(137, 212, 207);
+            subtitulo.Font = new Font(
+                "Segoe UI", 9F, FontStyle.Bold);
+            subtitulo.ForeColor =
+                Color.FromArgb(137, 212, 207);
             subtitulo.Location = new Point(28, 140);
             subtitulo.AutoSize = true;
             lateral.Controls.Add(subtitulo);
 
-            CrearBotonMenu(lateral, "INICIO", 205, true, MostrarInicio);
+            // Menú lateral
+            CrearBotonMenu(
+                lateral, "INICIO", 205, true,
+                MostrarInicio);
 
-            CrearBotonMenu(lateral, "PACIENTES", 265, false,
-                () => MostrarPendiente("Registro de pacientes"));
+            CrearBotonMenu(
+                lateral, "PACIENTES", 265, false,
+                AbrirPacientes);
 
-            CrearBotonMenu(lateral, "CONSULTAS", 325, false,
-                () => MostrarPendiente("Registro de consultas"));
+            CrearBotonMenu(
+                lateral, "CONSULTAS", 325, false,
+                AbrirConsultas);
 
-            CrearBotonMenu(lateral, "INFORME GENERAL", 385, false,
-                () => MostrarPendiente("Informe general"));
+            CrearBotonMenu(
+                lateral, "INFORME GENERAL", 385, false,
+                AbrirInformeGeneral);
 
-            CrearBotonMenu(lateral, "EVOLUCIÓN IMC", 445, false,
-                () => MostrarPendiente("Evolución del IMC"));
+            CrearBotonMenu(
+                lateral, "EVOLUCIÓN IMC", 445, false,
+                AbrirEvolucionIMC);
 
             Button btnSalir = new Button();
+            btnSalir.Name = "btnSalir";
             btnSalir.Text = "CERRAR SESIÓN";
-            btnSalir.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnSalir.Font = new Font(
+                "Segoe UI", 10F, FontStyle.Bold);
             btnSalir.ForeColor = Color.White;
-            btnSalir.BackColor = Color.FromArgb(26, 91, 102);
+            btnSalir.BackColor =
+                Color.FromArgb(26, 91, 102);
             btnSalir.FlatStyle = FlatStyle.Flat;
             btnSalir.FlatAppearance.BorderSize = 0;
             btnSalir.Cursor = Cursors.Hand;
             btnSalir.Location = new Point(20, 575);
             btnSalir.Size = new Size(195, 45);
-            btnSalir.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnSalir.Anchor =
+                AnchorStyles.Bottom | AnchorStyles.Left;
             btnSalir.Click += (s, e) => Close();
             lateral.Controls.Add(btnSalir);
 
-            // Área principal
+            // Panel de contenido
             panelContenido = new Panel();
             panelContenido.Dock = DockStyle.Fill;
             panelContenido.BackColor = fondo;
@@ -92,6 +113,7 @@ namespace ClinicaSaludBienestar
             MostrarInicio();
         }
 
+        // Crear botones laterales
         private void CrearBotonMenu(
             Panel lateral,
             string texto,
@@ -102,14 +124,16 @@ namespace ClinicaSaludBienestar
             Button boton = new Button();
             boton.Text = "   " + texto;
             boton.TextAlign = ContentAlignment.MiddleLeft;
-            boton.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            boton.Font = new Font(
+                "Segoe UI", 10F, FontStyle.Bold);
             boton.ForeColor = Color.White;
-            boton.BackColor = seleccionado ? turquesa : oscuro;
+            boton.BackColor =
+                seleccionado ? turquesa : oscuro;
+
             boton.FlatStyle = FlatStyle.Flat;
             boton.FlatAppearance.BorderSize = 0;
             boton.FlatAppearance.MouseOverBackColor =
                 Color.FromArgb(30, 108, 119);
-
             boton.Cursor = Cursors.Hand;
             boton.Location = new Point(12, y);
             boton.Size = new Size(211, 48);
@@ -118,13 +142,16 @@ namespace ClinicaSaludBienestar
             lateral.Controls.Add(boton);
         }
 
+        // Mostrar inicio
         private void MostrarInicio()
         {
             panelContenido.Controls.Clear();
 
             Label etiqueta = new Label();
-            etiqueta.Text = "PANEL ADMINISTRATIVO  /  INICIO";
-            etiqueta.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            etiqueta.Text =
+                "PANEL ADMINISTRATIVO  /  INICIO";
+            etiqueta.Font = new Font(
+                "Segoe UI", 10F, FontStyle.Bold);
             etiqueta.ForeColor = turquesa;
             etiqueta.Location = new Point(45, 40);
             etiqueta.AutoSize = true;
@@ -132,7 +159,8 @@ namespace ClinicaSaludBienestar
 
             Label titulo = new Label();
             titulo.Text = "Bienvenido al sistema";
-            titulo.Font = new Font("Segoe UI", 27F, FontStyle.Bold);
+            titulo.Font = new Font(
+                "Segoe UI", 27F, FontStyle.Bold);
             titulo.ForeColor = oscuro;
             titulo.Location = new Point(43, 80);
             titulo.AutoSize = true;
@@ -140,44 +168,49 @@ namespace ClinicaSaludBienestar
 
             Label descripcion = new Label();
             descripcion.Text =
-                "Gestiona pacientes, registra consultas y analiza " +
-                "su evolución clínica.";
-            descripcion.Font = new Font("Segoe UI", 11F);
+                "Gestiona pacientes, registra consultas " +
+                "y analiza su evolución clínica.";
+            descripcion.Font = new Font(
+                "Segoe UI", 11F);
             descripcion.ForeColor = gris;
             descripcion.Location = new Point(47, 150);
             descripcion.Size = new Size(775, 40);
             panelContenido.Controls.Add(descripcion);
 
+            // Tarjeta Pacientes
             CrearTarjeta(
                 "PACIENTES",
                 "Datos personales y registros",
                 45, 225,
-                () => MostrarPendiente("Registro de pacientes"));
+                AbrirPacientes);
 
+            // Tarjeta Consultas
             CrearTarjeta(
                 "CONSULTAS",
                 "Mediciones y clasificación IMC",
                 435, 225,
-                () => MostrarPendiente("Registro de consultas"));
+                AbrirConsultas);
 
+            // Tarjeta Informe General
             CrearTarjeta(
                 "INFORME GENERAL",
                 "Estadísticas de la clínica",
                 45, 400,
-                () => MostrarPendiente("Informe general"));
+                AbrirInformeGeneral);
 
+            // Tarjeta Evolución del IMC
             CrearTarjeta(
                 "EVOLUCIÓN DEL IMC",
                 "Historial y tendencias",
                 435, 400,
-                () => MostrarPendiente("Evolución del IMC"));
+                AbrirEvolucionIMC);
 
-            // Botón para probar la conexión SQL
+            // Botón para probar Azure SQL
             Button btnProbarBD = new Button();
             btnProbarBD.Name = "btnProbarBD";
             btnProbarBD.Text = "PROBAR CONEXIÓN SQL";
-            btnProbarBD.Font =
-                new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnProbarBD.Font = new Font(
+                "Segoe UI", 10F, FontStyle.Bold);
             btnProbarBD.Size = new Size(230, 42);
             btnProbarBD.Location = new Point(45, 575);
             btnProbarBD.BackColor = turquesa;
@@ -198,6 +231,7 @@ namespace ClinicaSaludBienestar
             panelContenido.Controls.Add(pie);
         }
 
+        // Crear tarjetas del dashboard
         private void CrearTarjeta(
             string titulo,
             string descripcion,
@@ -214,8 +248,8 @@ namespace ClinicaSaludBienestar
 
             Label lblTitulo = new Label();
             lblTitulo.Text = titulo;
-            lblTitulo.Font =
-                new Font("Segoe UI", 14F, FontStyle.Bold);
+            lblTitulo.Font = new Font(
+                "Segoe UI", 14F, FontStyle.Bold);
             lblTitulo.ForeColor = oscuro;
             lblTitulo.Location = new Point(22, 26);
             lblTitulo.Size = new Size(305, 40);
@@ -231,8 +265,8 @@ namespace ClinicaSaludBienestar
 
             Label enlace = new Label();
             enlace.Text = "ABRIR  >";
-            enlace.Font =
-                new Font("Segoe UI", 9F, FontStyle.Bold);
+            enlace.Font = new Font(
+                "Segoe UI", 9F, FontStyle.Bold);
             enlace.ForeColor = turquesa;
             enlace.Location = new Point(24, 115);
             enlace.AutoSize = true;
@@ -246,18 +280,47 @@ namespace ClinicaSaludBienestar
             panelContenido.Controls.Add(tarjeta);
         }
 
-        private void MostrarPendiente(string modulo)
+        // Abrir pacientes
+        private void AbrirPacientes()
         {
-            MessageBox.Show(
-                "El módulo \"" + modulo +
-                "\" se encuentra en desarrollo.",
-                "Clínica Salud y Bienestar",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
+            using (frmPacientes ventana = new frmPacientes())
+            {
+                ventana.ShowDialog(this);
+            }
         }
 
-        // Comprobar la conexión con Azure SQL
-        private void btnProbarBD_Click(object sender, EventArgs e)
+        // Abrir consultas
+        private void AbrirConsultas()
+        {
+            using (frmConsultas ventana = new frmConsultas())
+            {
+                ventana.ShowDialog(this);
+            }
+        }
+
+        // Abrir informe general
+        private void AbrirInformeGeneral()
+        {
+            using (frmInformeGeneral ventana =
+                new frmInformeGeneral())
+            {
+                ventana.ShowDialog(this);
+            }
+        }
+
+        // Abrir evolución del IMC
+        private void AbrirEvolucionIMC()
+        {
+            using (frmEvolucionIMC ventana =
+                new frmEvolucionIMC())
+            {
+                ventana.ShowDialog(this);
+            }
+        }
+
+        // Comprobar conexión con Azure SQL
+        private void btnProbarBD_Click(
+            object sender, EventArgs e)
         {
             try
             {
@@ -296,7 +359,8 @@ namespace ClinicaSaludBienestar
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    "No se pudo realizar la prueba:\n" + ex.Message,
+                    "No se pudo realizar la prueba:\n" +
+                    ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
