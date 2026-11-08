@@ -15,20 +15,21 @@ namespace ClinicaSaludBienestar
         private readonly Color fondo = Color.FromArgb(240, 247, 247);
         private readonly Color gris = Color.FromArgb(105, 127, 132);
 
-        private TextBox txtBuscar;
-        private DataGridView dgvPacientes;
-        private DataGridView dgvHistorial;
-        private Label lblTotalPacientes;
-        private Label lblTotalConsultas;
-        private Label lblHistorial;
+        private TextBox txtBuscar = null!;
+        private DataGridView dgvPacientes = null!;
+        private DataGridView dgvHistorial = null!;
+        private Label lblPacientes = null!;
+        private Label lblConsultas = null!;
+        private Label lblHistorial = null!;
+        private Label lblEstado = null!;
+
+        private bool cargando = false;
 
         public frmPacientes()
         {
             Text = "Clínica Salud y Bienestar | Pacientes";
-            ClientSize = new Size(1120, 750);
-            StartPosition = FormStartPosition.CenterParent;
-            FormBorderStyle = FormBorderStyle.FixedSingle;
-            MaximizeBox = false;
+            WindowState = FormWindowState.Maximized;
+            MinimumSize = new Size(900, 650);
             BackColor = fondo;
             Font = new Font("Segoe UI", 10F);
 
@@ -37,159 +38,218 @@ namespace ClinicaSaludBienestar
             Shown += (s, e) => CargarPacientes();
         }
 
-        // Crear el diseño del formulario
+        // Crear interfaz adaptable
         private void CrearInterfaz()
         {
+            TableLayoutPanel principal = new TableLayoutPanel();
+            principal.Dock = DockStyle.Fill;
+            principal.ColumnCount = 1;
+            principal.RowCount = 7;
+            principal.Padding = new Padding(18, 0, 18, 10);
+            principal.BackColor = fondo;
+
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 95));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 112));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 92));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Percent, 55));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 38));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Percent, 45));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 45));
+
+            Controls.Add(principal);
+
+            // Encabezado
             Panel encabezado = new Panel();
-            encabezado.Dock = DockStyle.Top;
-            encabezado.Height = 105;
+            encabezado.Dock = DockStyle.Fill;
             encabezado.BackColor = oscuro;
-            Controls.Add(encabezado);
+            encabezado.Margin = new Padding(0, 0, 0, 5);
 
             Label titulo = new Label();
             titulo.Text = "DIRECTORIO DE PACIENTES";
             titulo.Font = new Font(
-                "Segoe UI", 21F, FontStyle.Bold);
+                "Segoe UI", 22F, FontStyle.Bold);
             titulo.ForeColor = Color.White;
-            titulo.Location = new Point(35, 20);
+            titulo.Location = new Point(22, 10);
             titulo.AutoSize = true;
             encabezado.Controls.Add(titulo);
 
             Label subtitulo = new Label();
             subtitulo.Text =
                 "Gestión clínica • Información e historial";
-            subtitulo.Font = new Font("Segoe UI", 10F);
-            subtitulo.ForeColor =
-                Color.FromArgb(183, 222, 220);
-            subtitulo.Location = new Point(38, 67);
+            subtitulo.ForeColor = Color.LightCyan;
+            subtitulo.Location = new Point(25, 60);
             subtitulo.AutoSize = true;
             encabezado.Controls.Add(subtitulo);
 
-            // Indicadores
-            CrearTarjeta("PACIENTES", 35, 125,
-                out lblTotalPacientes);
+            principal.Controls.Add(encabezado, 0, 0);
 
-            CrearTarjeta("CONSULTAS", 315, 125,
-                out lblTotalConsultas);
+            // Tarjetas
+            TableLayoutPanel tarjetas = new TableLayoutPanel();
+            tarjetas.Dock = DockStyle.Fill;
+            tarjetas.ColumnCount = 2;
+            tarjetas.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Percent, 50));
+            tarjetas.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Percent, 50));
 
-            // Buscar pacientes
+            CrearTarjeta(
+                tarjetas, "PACIENTES REGISTRADOS",
+                0, out lblPacientes);
+
+            CrearTarjeta(
+                tarjetas, "CONSULTAS REGISTRADAS",
+                1, out lblConsultas);
+
+            principal.Controls.Add(tarjetas, 0, 1);
+
+            // Barra de búsqueda
+            TableLayoutPanel filtros = new TableLayoutPanel();
+            filtros.Dock = DockStyle.Fill;
+            filtros.ColumnCount = 3;
+            filtros.RowCount = 2;
+            filtros.Padding = new Padding(4, 8, 4, 8);
+
+            filtros.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Percent, 100));
+            filtros.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Absolute, 210));
+            filtros.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Absolute, 145));
+
+            filtros.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 28));
+            filtros.RowStyles.Add(
+                new RowStyle(SizeType.Percent, 100));
+
             Label lblBuscar = new Label();
-            lblBuscar.Text = "Buscar paciente";
+            lblBuscar.Text = "BUSCAR PACIENTE";
             lblBuscar.Font = new Font(
-                "Segoe UI", 11F, FontStyle.Bold);
+                "Segoe UI", 10F, FontStyle.Bold);
             lblBuscar.ForeColor = oscuro;
-            lblBuscar.Location = new Point(35, 220);
-            lblBuscar.AutoSize = true;
-            Controls.Add(lblBuscar);
+            lblBuscar.Dock = DockStyle.Fill;
+            filtros.Controls.Add(lblBuscar, 0, 0);
 
             txtBuscar = new TextBox();
-            txtBuscar.Name = "txtBuscar";
-            txtBuscar.Font = new Font("Segoe UI", 12F);
-            txtBuscar.Location = new Point(35, 252);
-            txtBuscar.Size = new Size(640, 34);
+            txtBuscar.Dock = DockStyle.Fill;
+            txtBuscar.Font = new Font("Segoe UI", 11F);
             txtBuscar.PlaceholderText =
                 "Escribe un nombre o apellido...";
+            txtBuscar.Margin = new Padding(0, 0, 12, 4);
             txtBuscar.TextChanged += (s, e) =>
                 CargarPacientes();
-            Controls.Add(txtBuscar);
 
-            Button btnActualizar = CrearBoton(
-                "ACTUALIZAR", 702, 249, 160);
-            btnActualizar.Click += (s, e) =>
+            filtros.Controls.Add(txtBuscar, 0, 1);
+
+            Button btnRecargar = CrearBoton(
+                "RECARGAR DATOS", turquesa);
+            btnRecargar.Click += (s, e) =>
                 CargarPacientes();
-            Controls.Add(btnActualizar);
+            filtros.Controls.Add(btnRecargar, 1, 1);
 
             Button btnCerrar = CrearBoton(
-                "CERRAR", 885, 249, 185);
-            btnCerrar.BackColor = oscuro;
+                "CERRAR", oscuro);
             btnCerrar.Click += (s, e) => Close();
-            Controls.Add(btnCerrar);
+            filtros.Controls.Add(btnCerrar, 2, 1);
 
-            // Tabla de pacientes
+            principal.Controls.Add(filtros, 0, 2);
+
+            // Tabla principal de pacientes
             dgvPacientes = CrearTabla();
-            dgvPacientes.Name = "dgvPacientes";
-            dgvPacientes.Location = new Point(35, 310);
-            dgvPacientes.Size = new Size(1035, 205);
+            dgvPacientes.Dock = DockStyle.Fill;
+            dgvPacientes.Margin = new Padding(4, 4, 4, 8);
+
             dgvPacientes.SelectionChanged +=
                 dgvPacientes_SelectionChanged;
-            Controls.Add(dgvPacientes);
 
-            // Historial del paciente
+            principal.Controls.Add(dgvPacientes, 0, 3);
+
+            // Título del historial
             lblHistorial = new Label();
-            lblHistorial.Text =
-                "HISTORIAL DE CONSULTAS";
+            lblHistorial.Text = "HISTORIAL DE CONSULTAS";
             lblHistorial.Font = new Font(
                 "Segoe UI", 13F, FontStyle.Bold);
             lblHistorial.ForeColor = oscuro;
-            lblHistorial.Location = new Point(35, 537);
-            lblHistorial.Size = new Size(1020, 30);
-            Controls.Add(lblHistorial);
+            lblHistorial.Dock = DockStyle.Fill;
+            lblHistorial.Padding = new Padding(6, 6, 0, 0);
 
+            principal.Controls.Add(lblHistorial, 0, 4);
+
+            // Tabla inferior, adaptable
             dgvHistorial = CrearTabla();
-            dgvHistorial.Name = "dgvHistorial";
-            dgvHistorial.Location = new Point(35, 577);
-            dgvHistorial.Size = new Size(1035, 120);
-            Controls.Add(dgvHistorial);
+            dgvHistorial.Dock = DockStyle.Fill;
+            dgvHistorial.Margin = new Padding(4, 0, 4, 6);
 
-            Label pie = new Label();
-            pie.Text =
-                "Clínica Salud y Bienestar  •  HPA III  •  Grupo 1";
-            pie.Font = new Font("Segoe UI", 9F);
-            pie.ForeColor = gris;
-            pie.Location = new Point(37, 715);
-            pie.AutoSize = true;
-            Controls.Add(pie);
+            principal.Controls.Add(dgvHistorial, 0, 5);
+
+            // Estado inferior
+            lblEstado = new Label();
+            lblEstado.Text = "Esperando información...";
+            lblEstado.ForeColor = gris;
+            lblEstado.Dock = DockStyle.Fill;
+            lblEstado.TextAlign = ContentAlignment.MiddleLeft;
+            lblEstado.Padding = new Padding(8, 0, 0, 0);
+
+            principal.Controls.Add(lblEstado, 0, 6);
         }
 
-        // Crear tarjetas de estadísticas
+        // Crear tarjeta
         private void CrearTarjeta(
-            string texto, int x, int y,
-            out Label lblCantidad)
+            TableLayoutPanel contenedor,
+            string titulo,
+            int columna,
+            out Label valor)
         {
             Panel tarjeta = new Panel();
+            tarjeta.Dock = DockStyle.Fill;
             tarjeta.BackColor = Color.White;
-            tarjeta.Location = new Point(x, y);
-            tarjeta.Size = new Size(255, 76);
-            Controls.Add(tarjeta);
+            tarjeta.Margin = new Padding(4, 10, 8, 10);
 
             Label nombre = new Label();
-            nombre.Text = texto;
+            nombre.Text = titulo;
             nombre.Font = new Font(
-                "Segoe UI", 9F, FontStyle.Bold);
+                "Segoe UI", 10F, FontStyle.Bold);
             nombre.ForeColor = gris;
-            nombre.Location = new Point(15, 10);
+            nombre.Location = new Point(18, 12);
             nombre.AutoSize = true;
             tarjeta.Controls.Add(nombre);
 
-            lblCantidad = new Label();
-            lblCantidad.Text = "—";
-            lblCantidad.Font = new Font(
-                "Segoe UI", 22F, FontStyle.Bold);
-            lblCantidad.ForeColor = turquesa;
-            lblCantidad.Location = new Point(13, 30);
-            lblCantidad.Size = new Size(200, 42);
-            tarjeta.Controls.Add(lblCantidad);
+            valor = new Label();
+            valor.Text = "—";
+            valor.Font = new Font(
+                "Segoe UI", 25F, FontStyle.Bold);
+            valor.ForeColor = turquesa;
+            valor.Location = new Point(16, 42);
+            valor.Size = new Size(290, 49);
+            tarjeta.Controls.Add(valor);
+
+            contenedor.Controls.Add(tarjeta, columna, 0);
         }
 
-        // Crear botones
-        private Button CrearBoton(
-            string texto, int x, int y, int ancho)
+        // Crear botón
+        private Button CrearBoton(string texto, Color color)
         {
             Button boton = new Button();
             boton.Text = texto;
+            boton.Dock = DockStyle.Fill;
+            boton.BackColor = color;
+            boton.ForeColor = Color.White;
             boton.Font = new Font(
                 "Segoe UI", 10F, FontStyle.Bold);
-            boton.ForeColor = Color.White;
-            boton.BackColor = turquesa;
             boton.FlatStyle = FlatStyle.Flat;
             boton.FlatAppearance.BorderSize = 0;
             boton.Cursor = Cursors.Hand;
-            boton.Location = new Point(x, y);
-            boton.Size = new Size(ancho, 40);
+            boton.Margin = new Padding(5, 0, 8, 4);
             return boton;
         }
 
-        // Crear tablas con estilo personalizado
+        // Crear tabla
         private DataGridView CrearTabla()
         {
             DataGridView tabla = new DataGridView();
@@ -199,23 +259,24 @@ namespace ClinicaSaludBienestar
             tabla.AllowUserToDeleteRows = false;
             tabla.AllowUserToResizeRows = false;
             tabla.MultiSelect = false;
+
             tabla.SelectionMode =
                 DataGridViewSelectionMode.FullRowSelect;
 
             tabla.AutoSizeColumnsMode =
                 DataGridViewAutoSizeColumnsMode.Fill;
 
+            tabla.ScrollBars = ScrollBars.Both;
             tabla.BackgroundColor = Color.White;
             tabla.BorderStyle = BorderStyle.None;
             tabla.RowHeadersVisible = false;
-            tabla.GridColor = Color.FromArgb(230, 237, 237);
-            tabla.RowTemplate.Height = 32;
+            tabla.RowTemplate.Height = 34;
 
             tabla.EnableHeadersVisualStyles = false;
-
-            tabla.ColumnHeadersHeight = 40;
+            tabla.ColumnHeadersHeight = 42;
             tabla.ColumnHeadersHeightSizeMode =
-                DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+                DataGridViewColumnHeadersHeightSizeMode
+                    .DisableResizing;
 
             tabla.ColumnHeadersDefaultCellStyle.BackColor =
                 oscuro;
@@ -224,7 +285,6 @@ namespace ClinicaSaludBienestar
             tabla.ColumnHeadersDefaultCellStyle.Font =
                 new Font("Segoe UI", 10F, FontStyle.Bold);
 
-            tabla.DefaultCellStyle.BackColor = Color.White;
             tabla.DefaultCellStyle.ForeColor = oscuro;
             tabla.DefaultCellStyle.Font =
                 new Font("Segoe UI", 10F);
@@ -240,11 +300,20 @@ namespace ClinicaSaludBienestar
             return tabla;
         }
 
-        // Cargar pacientes desde Azure SQL
+        // Cargar pacientes
         private void CargarPacientes()
         {
+            if (cargando)
+                return;
+
+            cargando = true;
+
             try
             {
+                DataTable datos = new DataTable();
+                int pacientes;
+                int consultas;
+
                 using (SqlConnection conexion =
                     ConexionBD.CrearConexion())
                 {
@@ -272,17 +341,14 @@ namespace ClinicaSaludBienestar
                     {
                         comando.Parameters.Add(
                             "@Buscar", SqlDbType.NVarChar, 150
-                        ).Value = "%" + txtBuscar.Text.Trim() + "%";
-
-                        DataTable datos = new DataTable();
+                        ).Value =
+                            "%" + txtBuscar.Text.Trim() + "%";
 
                         using (SqlDataAdapter adaptador =
                             new SqlDataAdapter(comando))
                         {
                             adaptador.Fill(datos);
                         }
-
-                        dgvPacientes.DataSource = datos;
                     }
 
                     using (SqlCommand comando =
@@ -290,9 +356,8 @@ namespace ClinicaSaludBienestar
                             "SELECT COUNT(*) FROM dbo.Paciente",
                             conexion))
                     {
-                        lblTotalPacientes.Text =
-                            Convert.ToString(
-                                comando.ExecuteScalar());
+                        pacientes = Convert.ToInt32(
+                            comando.ExecuteScalar());
                     }
 
                     using (SqlCommand comando =
@@ -300,61 +365,91 @@ namespace ClinicaSaludBienestar
                             "SELECT COUNT(*) FROM dbo.Consulta",
                             conexion))
                     {
-                        lblTotalConsultas.Text =
-                            Convert.ToString(
-                                comando.ExecuteScalar());
+                        consultas = Convert.ToInt32(
+                            comando.ExecuteScalar());
                     }
                 }
 
-                dgvPacientes.ClearSelection();
+                dgvPacientes.DataSource = datos;
 
+                if (dgvPacientes.Columns.Contains(
+                    "FechaNacimiento"))
+                {
+                    dgvPacientes.Columns["FechaNacimiento"]
+                        .HeaderText = "Fecha de nacimiento";
+
+                    dgvPacientes.Columns["FechaNacimiento"]
+                        .DefaultCellStyle.Format =
+                        "dd/MM/yyyy";
+                }
+
+                dgvPacientes.ClearSelection();
                 dgvHistorial.DataSource = null;
+
                 lblHistorial.Text =
                     "HISTORIAL DE CONSULTAS";
+
+                lblPacientes.Text = pacientes.ToString();
+                lblConsultas.Text = consultas.ToString();
+
+                lblEstado.ForeColor = turquesa;
+                lblEstado.Text =
+                    "Datos recargados correctamente • " +
+                    datos.Rows.Count + " pacientes mostrados";
             }
             catch (Exception ex)
             {
+                lblEstado.ForeColor = Color.Firebrick;
+                lblEstado.Text = "Error al cargar pacientes";
+
                 MessageBox.Show(
                     "No se pudieron cargar los pacientes:\n" +
                     ex.Message,
-                    "Error de base de datos",
+                    "Error de Azure SQL",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
+            finally
+            {
+                cargando = false;
+            }
         }
 
-        // Mostrar consultas del paciente seleccionado
+        // Seleccionar paciente
         private void dgvPacientes_SelectionChanged(
-            object sender, EventArgs e)
+            object? sender, EventArgs e)
         {
-            if (dgvPacientes.SelectedRows.Count == 0)
+            if (cargando ||
+                dgvPacientes.SelectedRows.Count == 0)
                 return;
 
-            if (dgvPacientes.SelectedRows[0]
-                .Cells["ID"].Value == null)
+            DataGridViewRow fila =
+                dgvPacientes.SelectedRows[0];
+
+            if (fila.Cells["ID"].Value == null)
                 return;
 
             int pacienteId = Convert.ToInt32(
-                dgvPacientes.SelectedRows[0]
-                    .Cells["ID"].Value);
+                fila.Cells["ID"].Value);
 
             string nombre = Convert.ToString(
-                dgvPacientes.SelectedRows[0]
-                    .Cells["Nombre"].Value) ?? "";
+                fila.Cells["Nombre"].Value) ?? "";
 
             string apellido = Convert.ToString(
-                dgvPacientes.SelectedRows[0]
-                    .Cells["Apellido"].Value) ?? "";
+                fila.Cells["Apellido"].Value) ?? "";
 
-            CargarHistorial(pacienteId, nombre + " " + apellido);
+            CargarHistorial(
+                pacienteId, nombre + " " + apellido);
         }
 
-        // Consultar historial de peso e IMC
+        // Cargar historial del paciente
         private void CargarHistorial(
             int pacienteId, string paciente)
         {
             try
             {
+                DataTable datos = new DataTable();
+
                 using (SqlConnection conexion =
                     ConexionBD.CrearConexion())
                 {
@@ -371,7 +466,8 @@ namespace ClinicaSaludBienestar
                         INNER JOIN dbo.Categoria cat
                             ON c.CategoriaId = cat.CategoriaId
                         WHERE c.PacienteId = @PacienteId
-                        ORDER BY c.Fecha ASC, c.ConsultaId ASC;";
+                        ORDER BY c.Fecha ASC,
+                                 c.ConsultaId ASC;";
 
                     using (SqlCommand comando =
                         new SqlCommand(sql, conexion))
@@ -380,29 +476,61 @@ namespace ClinicaSaludBienestar
                             "@PacienteId", SqlDbType.Int
                         ).Value = pacienteId;
 
-                        DataTable datos = new DataTable();
-
                         using (SqlDataAdapter adaptador =
                             new SqlDataAdapter(comando))
                         {
                             adaptador.Fill(datos);
                         }
-
-                        dgvHistorial.DataSource = datos;
                     }
                 }
+
+                dgvHistorial.DataSource = datos;
+
+                if (dgvHistorial.Columns.Contains("Fecha"))
+                {
+                    dgvHistorial.Columns["Fecha"]
+                        .DefaultCellStyle.Format =
+                        "dd/MM/yyyy";
+                }
+
+                if (dgvHistorial.Columns.Contains("Peso"))
+                {
+                    dgvHistorial.Columns["Peso"]
+                        .DefaultCellStyle.Format = "N2";
+                }
+
+                if (dgvHistorial.Columns.Contains("Estatura"))
+                {
+                    dgvHistorial.Columns["Estatura"]
+                        .DefaultCellStyle.Format = "N2";
+                }
+
+                if (dgvHistorial.Columns.Contains("IMC"))
+                {
+                    dgvHistorial.Columns["IMC"]
+                        .DefaultCellStyle.Format = "N1";
+                }
+
+                dgvHistorial.ClearSelection();
 
                 lblHistorial.Text =
                     "HISTORIAL DE CONSULTAS — " + paciente;
 
-                dgvHistorial.ClearSelection();
+                lblEstado.ForeColor = turquesa;
+                lblEstado.Text =
+                    "Historial cargado • " +
+                    datos.Rows.Count + " consultas";
             }
             catch (Exception ex)
             {
+                dgvHistorial.DataSource = null;
+                lblEstado.ForeColor = Color.Firebrick;
+                lblEstado.Text = "Error al cargar historial";
+
                 MessageBox.Show(
                     "No se pudo cargar el historial:\n" +
                     ex.Message,
-                    "Error de consultas",
+                    "Error de Azure SQL",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }

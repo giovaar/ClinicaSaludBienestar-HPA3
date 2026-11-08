@@ -16,47 +16,66 @@ namespace ClinicaSaludBienestar
         private readonly Color fondo = Color.FromArgb(240, 247, 247);
         private readonly Color gris = Color.FromArgb(105, 127, 132);
 
-        private Label lblPacientes;
-        private Label lblEdadPromedio;
-        private Label lblConsultas;
-        private Label lblMayor;
-        private Label lblMenor;
-        private Label lblEstado;
-        private DataGridView dgvCategorias;
-
         private readonly DateTime fechaCorte =
             new DateTime(2026, 11, 10);
+
+        private Label lblPacientes = null!;
+        private Label lblEdadPromedio = null!;
+        private Label lblConsultas = null!;
+        private Label lblMayor = null!;
+        private Label lblMenor = null!;
+        private Label lblEstado = null!;
+        private DataGridView dgvCategorias = null!;
 
         public frmInformeGeneral()
         {
             Text = "Clínica Salud y Bienestar | Informe general";
-            ClientSize = new Size(1100, 760);
-            StartPosition = FormStartPosition.CenterParent;
-            FormBorderStyle = FormBorderStyle.FixedSingle;
-            MaximizeBox = false;
+            WindowState = FormWindowState.Maximized;
+            MinimumSize = new Size(900, 650);
             BackColor = fondo;
             Font = new Font("Segoe UI", 10F);
 
             CrearInterfaz();
-
             Shown += (s, e) => CargarInforme();
         }
 
-        // Crear interfaz
+        // Crear interfaz adaptable
         private void CrearInterfaz()
         {
+            TableLayoutPanel principal = new TableLayoutPanel();
+            principal.Dock = DockStyle.Fill;
+            principal.ColumnCount = 1;
+            principal.RowCount = 6;
+            principal.Padding = new Padding(18, 0, 18, 12);
+            principal.BackColor = fondo;
+
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 100));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 128));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 68));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Percent, 100));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 120));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 62));
+
+            Controls.Add(principal);
+
+            // Encabezado
             Panel encabezado = new Panel();
-            encabezado.Dock = DockStyle.Top;
-            encabezado.Height = 105;
+            encabezado.Dock = DockStyle.Fill;
             encabezado.BackColor = oscuro;
-            Controls.Add(encabezado);
+            encabezado.Margin = new Padding(0, 0, 0, 8);
 
             Label titulo = new Label();
             titulo.Text = "INFORME GENERAL";
             titulo.Font = new Font(
-                "Segoe UI", 23F, FontStyle.Bold);
+                "Segoe UI", 22F, FontStyle.Bold);
             titulo.ForeColor = Color.White;
-            titulo.Location = new Point(35, 18);
+            titulo.Location = new Point(22, 10);
             titulo.AutoSize = true;
             encabezado.Controls.Add(titulo);
 
@@ -64,24 +83,41 @@ namespace ClinicaSaludBienestar
             subtitulo.Text =
                 "Estadísticas generales • Corte: 10/11/2026";
             subtitulo.ForeColor = Color.LightCyan;
-            subtitulo.Location = new Point(38, 70);
+            subtitulo.Location = new Point(25, 62);
             subtitulo.AutoSize = true;
             encabezado.Controls.Add(subtitulo);
 
-            CrearTarjeta(
-                "PACIENTES REGISTRADOS",
-                35, 130, 320,
-                out lblPacientes);
+            principal.Controls.Add(encabezado, 0, 0);
+
+            // Tarjetas de resumen
+            TableLayoutPanel tarjetas = new TableLayoutPanel();
+            tarjetas.Dock = DockStyle.Fill;
+            tarjetas.ColumnCount = 3;
+            tarjetas.RowCount = 1;
+            tarjetas.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Percent, 33.33F));
+            tarjetas.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Percent, 33.33F));
+            tarjetas.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Percent, 33.34F));
 
             CrearTarjeta(
-                "EDAD PROMEDIO",
-                390, 130, 320,
-                out lblEdadPromedio);
+                tarjetas, "PACIENTES REGISTRADOS",
+                0, out lblPacientes);
 
             CrearTarjeta(
-                "CONSULTAS REGISTRADAS",
-                745, 130, 320,
-                out lblConsultas);
+                tarjetas, "EDAD PROMEDIO",
+                1, out lblEdadPromedio);
+
+            CrearTarjeta(
+                tarjetas, "CONSULTAS REGISTRADAS",
+                2, out lblConsultas);
+
+            principal.Controls.Add(tarjetas, 0, 1);
+
+            // Título de tabla
+            Panel seccion = new Panel();
+            seccion.Dock = DockStyle.Fill;
 
             Label lblSeccion = new Label();
             lblSeccion.Text =
@@ -89,206 +125,232 @@ namespace ClinicaSaludBienestar
             lblSeccion.Font = new Font(
                 "Segoe UI", 14F, FontStyle.Bold);
             lblSeccion.ForeColor = oscuro;
-            lblSeccion.Location = new Point(35, 260);
+            lblSeccion.Location = new Point(5, 7);
             lblSeccion.AutoSize = true;
-            Controls.Add(lblSeccion);
+            seccion.Controls.Add(lblSeccion);
 
-            Label lblDetalle = new Label();
-            lblDetalle.Text =
-                "Se considera la última consulta de cada paciente.";
-            lblDetalle.ForeColor = gris;
-            lblDetalle.Location = new Point(37, 297);
-            lblDetalle.AutoSize = true;
-            Controls.Add(lblDetalle);
+            Label detalle = new Label();
+            detalle.Text =
+                "Se utiliza la última consulta de cada paciente.";
+            detalle.ForeColor = gris;
+            detalle.Location = new Point(7, 41);
+            detalle.AutoSize = true;
+            seccion.Controls.Add(detalle);
 
+            principal.Controls.Add(seccion, 0, 2);
+
+            // Tabla adaptable
             dgvCategorias = new DataGridView();
-            dgvCategorias.Location = new Point(35, 330);
-            dgvCategorias.Size = new Size(1030, 232);
+            dgvCategorias.Dock = DockStyle.Fill;
+            dgvCategorias.Margin = new Padding(4, 0, 4, 10);
             dgvCategorias.ReadOnly = true;
             dgvCategorias.AllowUserToAddRows = false;
             dgvCategorias.AllowUserToDeleteRows = false;
             dgvCategorias.AllowUserToResizeRows = false;
+            dgvCategorias.RowHeadersVisible = false;
             dgvCategorias.MultiSelect = false;
             dgvCategorias.SelectionMode =
                 DataGridViewSelectionMode.FullRowSelect;
+
             dgvCategorias.AutoSizeColumnsMode =
                 DataGridViewAutoSizeColumnsMode.Fill;
-
+            dgvCategorias.ScrollBars = ScrollBars.Both;
             dgvCategorias.BackgroundColor = Color.White;
             dgvCategorias.BorderStyle = BorderStyle.None;
-            dgvCategorias.RowHeadersVisible = false;
-            dgvCategorias.GridColor =
-                Color.FromArgb(230, 237, 237);
-            dgvCategorias.RowTemplate.Height = 31;
-
+            dgvCategorias.RowTemplate.Height = 36;
             dgvCategorias.EnableHeadersVisualStyles = false;
-            dgvCategorias.ColumnHeadersHeight = 40;
+
+            dgvCategorias.ColumnHeadersHeight = 44;
             dgvCategorias.ColumnHeadersHeightSizeMode =
                 DataGridViewColumnHeadersHeightSizeMode
                     .DisableResizing;
 
-            dgvCategorias.ColumnHeadersDefaultCellStyle
-                .BackColor = oscuro;
-            dgvCategorias.ColumnHeadersDefaultCellStyle
-                .ForeColor = Color.White;
-            dgvCategorias.ColumnHeadersDefaultCellStyle
-                .Font = new Font(
-                    "Segoe UI", 10F, FontStyle.Bold);
-
-            dgvCategorias.DefaultCellStyle.BackColor =
-                Color.White;
-            dgvCategorias.DefaultCellStyle.ForeColor =
+            dgvCategorias.ColumnHeadersDefaultCellStyle.BackColor =
                 oscuro;
-            dgvCategorias.DefaultCellStyle
-                .SelectionBackColor =
+            dgvCategorias.ColumnHeadersDefaultCellStyle.ForeColor =
+                Color.White;
+            dgvCategorias.ColumnHeadersDefaultCellStyle.Font =
+                new Font("Segoe UI", 11F, FontStyle.Bold);
+
+            dgvCategorias.DefaultCellStyle.Font =
+                new Font("Segoe UI", 11F);
+            dgvCategorias.DefaultCellStyle.ForeColor = oscuro;
+            dgvCategorias.DefaultCellStyle.SelectionBackColor =
                 Color.FromArgb(209, 237, 234);
-            dgvCategorias.DefaultCellStyle
-                .SelectionForeColor = oscuro;
+            dgvCategorias.DefaultCellStyle.SelectionForeColor =
+                oscuro;
+            dgvCategorias.AlternatingRowsDefaultCellStyle.BackColor =
+                Color.FromArgb(246, 250, 250);
 
-            dgvCategorias.AlternatingRowsDefaultCellStyle
-                .BackColor = Color.FromArgb(246, 250, 250);
+            principal.Controls.Add(dgvCategorias, 0, 3);
 
-            Controls.Add(dgvCategorias);
+            // Categorías más y menos frecuentes
+            TableLayoutPanel resumen = new TableLayoutPanel();
+            resumen.Dock = DockStyle.Fill;
+            resumen.ColumnCount = 2;
+            resumen.RowCount = 1;
+            resumen.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Percent, 50));
+            resumen.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Percent, 50));
 
-            // Resumen de categorías
-            Panel panelResumen = new Panel();
-            panelResumen.Location = new Point(35, 580);
-            panelResumen.Size = new Size(1030, 103);
-            panelResumen.BackColor = Color.White;
-            Controls.Add(panelResumen);
+            lblMayor = CrearResumen(
+                resumen, "MAYOR FRECUENCIA", 0);
 
-            Label lblMayorTitulo = new Label();
-            lblMayorTitulo.Text = "MAYOR FRECUENCIA";
-            lblMayorTitulo.Font = new Font(
-                "Segoe UI", 9F, FontStyle.Bold);
-            lblMayorTitulo.ForeColor = gris;
-            lblMayorTitulo.Location = new Point(18, 12);
-            lblMayorTitulo.AutoSize = true;
-            panelResumen.Controls.Add(lblMayorTitulo);
+            lblMenor = CrearResumen(
+                resumen, "MENOR FRECUENCIA", 1);
 
-            lblMayor = new Label();
-            lblMayor.Text = "—";
-            lblMayor.Font = new Font(
-                "Segoe UI", 12F, FontStyle.Bold);
-            lblMayor.ForeColor = turquesa;
-            lblMayor.Location = new Point(18, 41);
-            lblMayor.Size = new Size(480, 52);
-            panelResumen.Controls.Add(lblMayor);
+            principal.Controls.Add(resumen, 0, 4);
 
-            Label lblMenorTitulo = new Label();
-            lblMenorTitulo.Text = "MENOR FRECUENCIA";
-            lblMenorTitulo.Font = new Font(
-                "Segoe UI", 9F, FontStyle.Bold);
-            lblMenorTitulo.ForeColor = gris;
-            lblMenorTitulo.Location = new Point(530, 12);
-            lblMenorTitulo.AutoSize = true;
-            panelResumen.Controls.Add(lblMenorTitulo);
+            // Barra de acciones
+            FlowLayoutPanel acciones = new FlowLayoutPanel();
+            acciones.Dock = DockStyle.Fill;
+            acciones.FlowDirection = FlowDirection.LeftToRight;
+            acciones.WrapContents = false;
+            acciones.Padding = new Padding(4, 8, 0, 0);
 
-            lblMenor = new Label();
-            lblMenor.Text = "—";
-            lblMenor.Font = new Font(
-                "Segoe UI", 12F, FontStyle.Bold);
-            lblMenor.ForeColor = turquesa;
-            lblMenor.Location = new Point(530, 41);
-            lblMenor.Size = new Size(470, 52);
-            panelResumen.Controls.Add(lblMenor);
+            Button btnRecargar = CrearBoton(
+                "RECARGAR DATOS", turquesa, 205);
+            btnRecargar.Click += (s, e) => CargarInforme();
+            acciones.Controls.Add(btnRecargar);
 
-            Button btnActualizar = new Button();
-            btnActualizar.Text = "ACTUALIZAR INFORME";
-            btnActualizar.Location = new Point(35, 699);
-            btnActualizar.Size = new Size(230, 42);
-            btnActualizar.BackColor = turquesa;
-            btnActualizar.ForeColor = Color.White;
-            btnActualizar.FlatStyle = FlatStyle.Flat;
-            btnActualizar.FlatAppearance.BorderSize = 0;
-            btnActualizar.Cursor = Cursors.Hand;
-            btnActualizar.Click += (s, e) => CargarInforme();
-            Controls.Add(btnActualizar);
-
-            Button btnCerrar = new Button();
-            btnCerrar.Text = "CERRAR";
-            btnCerrar.Location = new Point(285, 699);
-            btnCerrar.Size = new Size(150, 42);
-            btnCerrar.BackColor = oscuro;
-            btnCerrar.ForeColor = Color.White;
-            btnCerrar.FlatStyle = FlatStyle.Flat;
-            btnCerrar.FlatAppearance.BorderSize = 0;
-            btnCerrar.Cursor = Cursors.Hand;
+            Button btnCerrar = CrearBoton(
+                "CERRAR", oscuro, 135);
             btnCerrar.Click += (s, e) => Close();
-            Controls.Add(btnCerrar);
+            acciones.Controls.Add(btnCerrar);
 
             lblEstado = new Label();
             lblEstado.Text = "Esperando información...";
             lblEstado.ForeColor = gris;
-            lblEstado.TextAlign = ContentAlignment.MiddleRight;
-            lblEstado.Location = new Point(650, 699);
-            lblEstado.Size = new Size(415, 42);
-            Controls.Add(lblEstado);
+            lblEstado.AutoSize = true;
+            lblEstado.Margin = new Padding(25, 13, 0, 0);
+            acciones.Controls.Add(lblEstado);
+
+            principal.Controls.Add(acciones, 0, 5);
         }
 
-        // Crear tarjetas de información
+        // Crear tarjeta estadística
         private void CrearTarjeta(
-            string titulo, int x, int y, int ancho,
-            out Label lblValor)
+            TableLayoutPanel contenedor,
+            string titulo,
+            int columna,
+            out Label valor)
         {
             Panel tarjeta = new Panel();
-            tarjeta.Location = new Point(x, y);
-            tarjeta.Size = new Size(ancho, 105);
             tarjeta.BackColor = Color.White;
-            Controls.Add(tarjeta);
+            tarjeta.Dock = DockStyle.Fill;
+            tarjeta.Margin = new Padding(4, 12, 8, 12);
 
             Label nombre = new Label();
             nombre.Text = titulo;
             nombre.Font = new Font(
-                "Segoe UI", 9F, FontStyle.Bold);
+                "Segoe UI", 10F, FontStyle.Bold);
             nombre.ForeColor = gris;
-            nombre.Location = new Point(17, 13);
+            nombre.Location = new Point(18, 14);
             nombre.AutoSize = true;
             tarjeta.Controls.Add(nombre);
 
-            lblValor = new Label();
-            lblValor.Text = "—";
-            lblValor.Font = new Font(
+            valor = new Label();
+            valor.Text = "—";
+            valor.Font = new Font(
                 "Segoe UI", 25F, FontStyle.Bold);
-            lblValor.ForeColor = turquesa;
-            lblValor.Location = new Point(15, 46);
-            lblValor.Size = new Size(ancho - 30, 50);
-            tarjeta.Controls.Add(lblValor);
+            valor.ForeColor = turquesa;
+            valor.Location = new Point(16, 44);
+            valor.Size = new Size(270, 53);
+            valor.Anchor =
+                AnchorStyles.Top |
+                AnchorStyles.Left |
+                AnchorStyles.Right;
+            tarjeta.Controls.Add(valor);
+
+            contenedor.Controls.Add(tarjeta, columna, 0);
         }
 
-        // Cargar estadísticas desde Azure SQL
+        // Crear resumen de frecuencias
+        private Label CrearResumen(
+            TableLayoutPanel contenedor,
+            string titulo,
+            int columna)
+        {
+            Panel panel = new Panel();
+            panel.BackColor = Color.White;
+            panel.Dock = DockStyle.Fill;
+            panel.Margin = new Padding(4, 0, 8, 10);
+
+            Label nombre = new Label();
+            nombre.Text = titulo;
+            nombre.Font = new Font(
+                "Segoe UI", 10F, FontStyle.Bold);
+            nombre.ForeColor = gris;
+            nombre.Location = new Point(18, 12);
+            nombre.AutoSize = true;
+            panel.Controls.Add(nombre);
+
+            Label valor = new Label();
+            valor.Text = "—";
+            valor.Font = new Font(
+                "Segoe UI", 12F, FontStyle.Bold);
+            valor.ForeColor = turquesa;
+            valor.Location = new Point(18, 42);
+            valor.Size = new Size(450, 55);
+            valor.Dock = DockStyle.Bottom;
+            valor.Padding = new Padding(18, 0, 12, 0);
+            valor.AutoEllipsis = true;
+            panel.Controls.Add(valor);
+
+            contenedor.Controls.Add(panel, columna, 0);
+            return valor;
+        }
+
+        // Crear botón
+        private Button CrearBoton(
+            string texto, Color color, int ancho)
+        {
+            Button boton = new Button();
+            boton.Text = texto;
+            boton.Width = ancho;
+            boton.Height = 42;
+            boton.BackColor = color;
+            boton.ForeColor = Color.White;
+            boton.Font = new Font(
+                "Segoe UI", 10F, FontStyle.Bold);
+            boton.FlatStyle = FlatStyle.Flat;
+            boton.FlatAppearance.BorderSize = 0;
+            boton.Cursor = Cursors.Hand;
+            boton.Margin = new Padding(0, 0, 12, 0);
+            return boton;
+        }
+
+        // Consultar informe desde Azure SQL
         private void CargarInforme()
         {
             try
             {
+                DataTable categorias = new DataTable();
+                int totalPacientes;
+                int totalConsultas;
+                object? edadResultado;
+
                 using (SqlConnection conexion =
                     ConexionBD.CrearConexion())
                 {
                     conexion.Open();
 
-                    // Total de pacientes
-                    using (SqlCommand comando =
-                        new SqlCommand(
-                            "SELECT COUNT(*) FROM dbo.Paciente",
-                            conexion))
+                    using (SqlCommand comando = new SqlCommand(
+                        "SELECT COUNT(*) FROM dbo.Paciente", conexion))
                     {
-                        lblPacientes.Text =
-                            Convert.ToString(
-                                comando.ExecuteScalar()) ?? "0";
+                        totalPacientes = Convert.ToInt32(
+                            comando.ExecuteScalar());
                     }
 
-                    // Total de consultas
-                    using (SqlCommand comando =
-                        new SqlCommand(
-                            "SELECT COUNT(*) FROM dbo.Consulta",
-                            conexion))
+                    using (SqlCommand comando = new SqlCommand(
+                        "SELECT COUNT(*) FROM dbo.Consulta", conexion))
                     {
-                        lblConsultas.Text =
-                            Convert.ToString(
-                                comando.ExecuteScalar()) ?? "0";
+                        totalConsultas = Convert.ToInt32(
+                            comando.ExecuteScalar());
                     }
 
-                    // Edad promedio al 10 de noviembre de 2026
+                    // Edad en años cumplidos al corte
                     string sqlEdad = @"
                         SELECT AVG(CAST(
                             DATEDIFF(YEAR, FechaNacimiento, @Corte)
@@ -317,25 +379,11 @@ namespace ClinicaSaludBienestar
                             "@Corte", SqlDbType.Date
                         ).Value = fechaCorte;
 
-                        object resultado =
-                            comando.ExecuteScalar();
-
-                        if (resultado == null ||
-                            resultado == DBNull.Value)
-                        {
-                            lblEdadPromedio.Text = "—";
-                        }
-                        else
-                        {
-                            decimal promedio =
-                                Convert.ToDecimal(resultado);
-
-                            lblEdadPromedio.Text =
-                                promedio.ToString("F1") + " años";
-                        }
+                        edadResultado = comando.ExecuteScalar();
                     }
 
-                    // Clasificar según la consulta más reciente
+                    // Una categoría por paciente:
+                    // la de su última consulta
                     string sqlCategorias = @"
                         WITH UltimaConsulta AS
                         (
@@ -370,8 +418,6 @@ namespace ClinicaSaludBienestar
                             END,
                             cat.LimiteInferior;";
 
-                    DataTable tabla = new DataTable();
-
                     using (SqlCommand comando =
                         new SqlCommand(sqlCategorias, conexion))
                     {
@@ -382,26 +428,34 @@ namespace ClinicaSaludBienestar
                         using (SqlDataAdapter adaptador =
                             new SqlDataAdapter(comando))
                         {
-                            adaptador.Fill(tabla);
+                            adaptador.Fill(categorias);
                         }
                     }
-
-                    dgvCategorias.DataSource = tabla;
-                    dgvCategorias.ClearSelection();
-
-                    CalcularFrecuencias(tabla);
-                    lblEstado.Text = "Informe actualizado";
                 }
+
+                lblPacientes.Text = totalPacientes.ToString();
+                lblConsultas.Text = totalConsultas.ToString();
+
+                lblEdadPromedio.Text =
+                    edadResultado == null ||
+                    edadResultado == DBNull.Value
+                        ? "—"
+                        : Convert.ToDecimal(edadResultado)
+                            .ToString("F1") + " años";
+
+                dgvCategorias.DataSource = categorias;
+                dgvCategorias.ClearSelection();
+
+                CalcularFrecuencias(categorias);
+
+                lblEstado.ForeColor = turquesa;
+                lblEstado.Text =
+                    "Datos recargados correctamente";
             }
             catch (Exception ex)
             {
-                lblPacientes.Text = "—";
-                lblEdadPromedio.Text = "—";
-                lblConsultas.Text = "—";
-                lblMayor.Text = "—";
-                lblMenor.Text = "—";
-                dgvCategorias.DataSource = null;
-                lblEstado.Text = "Error al actualizar";
+                lblEstado.ForeColor = Color.Firebrick;
+                lblEstado.Text = "Error al recargar datos";
 
                 MessageBox.Show(
                     "No se pudo generar el informe:\n" +
@@ -412,7 +466,7 @@ namespace ClinicaSaludBienestar
             }
         }
 
-        // Identificar categorías con mayor y menor frecuencia
+        // Calcular categorías más y menos frecuentes
         private void CalcularFrecuencias(DataTable tabla)
         {
             var frecuencias = tabla.AsEnumerable()
@@ -435,28 +489,22 @@ namespace ClinicaSaludBienestar
 
             int maximo = frecuencias.Max(x => x.Cantidad);
 
-            var mayores = frecuencias
-                .Where(x => x.Cantidad == maximo)
-                .Select(x => x.Nombre)
-                .ToList();
-
-            // Excluir las categorías con cero pacientes
             int minimo = frecuencias
                 .Where(x => x.Cantidad > 0)
                 .Min(x => x.Cantidad);
 
-            var menores = frecuencias
-                .Where(x => x.Cantidad == minimo)
-                .Select(x => x.Nombre)
-                .ToList();
+            string mayores = string.Join(", ",
+                frecuencias
+                    .Where(x => x.Cantidad == maximo)
+                    .Select(x => x.Nombre));
 
-            lblMayor.Text =
-                string.Join(", ", mayores) +
-                " (" + maximo + ")";
+            string menores = string.Join(", ",
+                frecuencias
+                    .Where(x => x.Cantidad == minimo)
+                    .Select(x => x.Nombre));
 
-            lblMenor.Text =
-                string.Join(", ", menores) +
-                " (" + minimo + ")";
+            lblMayor.Text = mayores + " (" + maximo + ")";
+            lblMenor.Text = menores + " (" + minimo + ")";
         }
     }
 }

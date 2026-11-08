@@ -15,13 +15,18 @@ namespace ClinicaSaludBienestar
         private readonly Color oscuro = Color.FromArgb(18, 63, 73);
         private readonly Color turquesa = Color.FromArgb(20, 125, 134);
         private readonly Color fondo = Color.FromArgb(240, 247, 247);
+        private readonly Color gris = Color.FromArgb(105, 127, 132);
 
-        private ComboBox cmbPacientes;
-        private Label lblInicial, lblActual, lblTendencia;
-        private Label lblCategoria;
-        private DataGridView dgvConsultas;
-        private Panel panelGrafico;
+        private ComboBox cmbPacientes = null!;
+        private Label lblInicial = null!;
+        private Label lblActual = null!;
+        private Label lblTendencia = null!;
+        private Label lblCategoria = null!;
+        private Label lblEstado = null!;
+        private DataGridView dgvConsultas = null!;
+        private Panel panelGrafico = null!;
 
+        private bool cargando = false;
         private List<PuntoIMC> puntos = new List<PuntoIMC>();
 
         private class PuntoIMC
@@ -30,187 +35,357 @@ namespace ClinicaSaludBienestar
             public decimal IMC { get; set; }
         }
 
+        // Panel con doble búfer para evitar parpadeos
+        private class PanelGrafico : Panel
+        {
+            public PanelGrafico()
+            {
+                DoubleBuffered = true;
+                ResizeRedraw = true;
+            }
+        }
+
         public frmEvolucionIMC()
         {
             Text = "Clínica Salud y Bienestar | Evolución del IMC";
-            ClientSize = new Size(1100, 760);
-            StartPosition = FormStartPosition.CenterParent;
+            WindowState = FormWindowState.Maximized;
+            MinimumSize = new Size(900, 650);
             BackColor = fondo;
             Font = new Font("Segoe UI", 10F);
-            MinimumSize = new Size(1000, 700);
 
             CrearInterfaz();
 
             Shown += (s, e) => CargarPacientes();
         }
 
-        // Crear diseño de evolución del IMC
+        // Crear interfaz adaptable
         private void CrearInterfaz()
         {
+            TableLayoutPanel principal = new TableLayoutPanel();
+            principal.Dock = DockStyle.Fill;
+            principal.ColumnCount = 1;
+            principal.RowCount = 7;
+            principal.Padding = new Padding(18, 0, 18, 12);
+            principal.BackColor = fondo;
+
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 95));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 80));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 110));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 43));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Percent, 52));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Percent, 48));
+            principal.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 55));
+
+            Controls.Add(principal);
+
+            // Encabezado
             Panel encabezado = new Panel();
-            encabezado.Dock = DockStyle.Top;
-            encabezado.Height = 100;
+            encabezado.Dock = DockStyle.Fill;
             encabezado.BackColor = oscuro;
-            Controls.Add(encabezado);
+            encabezado.Margin = new Padding(0, 0, 0, 5);
 
             Label titulo = new Label();
             titulo.Text = "EVOLUCIÓN DEL IMC";
-            titulo.Font = new Font("Segoe UI", 23F, FontStyle.Bold);
+            titulo.Font = new Font(
+                "Segoe UI", 22F, FontStyle.Bold);
             titulo.ForeColor = Color.White;
-            titulo.Location = new Point(35, 16);
+            titulo.Location = new Point(22, 9);
             titulo.AutoSize = true;
             encabezado.Controls.Add(titulo);
 
             Label subtitulo = new Label();
-            subtitulo.Text = "Seguimiento histórico de pacientes";
+            subtitulo.Text =
+                "Seguimiento histórico de pacientes";
             subtitulo.ForeColor = Color.LightCyan;
-            subtitulo.Location = new Point(38, 67);
+            subtitulo.Location = new Point(25, 59);
             subtitulo.AutoSize = true;
             encabezado.Controls.Add(subtitulo);
+
+            principal.Controls.Add(encabezado, 0, 0);
+
+            // Selector de paciente
+            TableLayoutPanel filtros = new TableLayoutPanel();
+            filtros.Dock = DockStyle.Fill;
+            filtros.ColumnCount = 3;
+            filtros.RowCount = 2;
+            filtros.Padding = new Padding(4, 6, 4, 6);
+
+            filtros.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Percent, 100));
+            filtros.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Absolute, 180));
+            filtros.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Absolute, 150));
+
+            filtros.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 25));
+            filtros.RowStyles.Add(
+                new RowStyle(SizeType.Percent, 100));
 
             Label lblSeleccion = new Label();
             lblSeleccion.Text = "SELECCIONAR PACIENTE";
             lblSeleccion.Font = new Font(
                 "Segoe UI", 10F, FontStyle.Bold);
             lblSeleccion.ForeColor = oscuro;
-            lblSeleccion.Location = new Point(35, 125);
-            lblSeleccion.AutoSize = true;
-            Controls.Add(lblSeleccion);
+            lblSeleccion.Dock = DockStyle.Fill;
+            filtros.Controls.Add(lblSeleccion, 0, 0);
 
             cmbPacientes = new ComboBox();
-            cmbPacientes.Name = "cmbPacientes";
-            cmbPacientes.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbPacientes.DropDownStyle =
+                ComboBoxStyle.DropDownList;
+            cmbPacientes.Dock = DockStyle.Fill;
             cmbPacientes.Font = new Font("Segoe UI", 11F);
-            cmbPacientes.Location = new Point(35, 157);
-            cmbPacientes.Size = new Size(530, 34);
+            cmbPacientes.Margin = new Padding(0, 0, 14, 4);
+
             cmbPacientes.SelectedIndexChanged += (s, e) =>
             {
-                if (cmbPacientes.SelectedValue is int id)
-                    CargarEvolucion(id);
+                if (!cargando &&
+                    cmbPacientes.SelectedValue is int pacienteId)
+                {
+                    CargarEvolucion(pacienteId);
+                }
             };
-            Controls.Add(cmbPacientes);
 
-            Button btnActualizar = new Button();
-            btnActualizar.Text = "ACTUALIZAR";
-            btnActualizar.Name = "btnActualizar";
-            btnActualizar.Location = new Point(590, 153);
-            btnActualizar.Size = new Size(160, 42);
-            btnActualizar.BackColor = turquesa;
-            btnActualizar.ForeColor = Color.White;
-            btnActualizar.FlatStyle = FlatStyle.Flat;
-            btnActualizar.FlatAppearance.BorderSize = 0;
-            btnActualizar.Cursor = Cursors.Hand;
-            btnActualizar.Click += (s, e) => CargarPacientes();
-            Controls.Add(btnActualizar);
+            filtros.Controls.Add(cmbPacientes, 0, 1);
 
-            Button btnCerrar = new Button();
-            btnCerrar.Text = "CERRAR";
-            btnCerrar.Location = new Point(770, 153);
-            btnCerrar.Size = new Size(160, 42);
-            btnCerrar.BackColor = oscuro;
-            btnCerrar.ForeColor = Color.White;
-            btnCerrar.FlatStyle = FlatStyle.Flat;
-            btnCerrar.FlatAppearance.BorderSize = 0;
+            Button btnRecargar = CrearBoton(
+                "RECARGAR DATOS", turquesa);
+            filtros.Controls.Add(btnRecargar, 1, 1);
+            btnRecargar.Click += (s, e) => CargarPacientes();
+
+            Button btnCerrar = CrearBoton("CERRAR", oscuro);
+            filtros.Controls.Add(btnCerrar, 2, 1);
             btnCerrar.Click += (s, e) => Close();
-            Controls.Add(btnCerrar);
 
-            CrearTarjeta("IMC INICIAL", 35, out lblInicial);
-            CrearTarjeta("IMC ACTUAL", 385, out lblActual);
-            CrearTarjeta("TENDENCIA", 735, out lblTendencia);
+            principal.Controls.Add(filtros, 0, 1);
 
+            // Tarjetas de IMC
+            TableLayoutPanel tarjetas = new TableLayoutPanel();
+            tarjetas.Dock = DockStyle.Fill;
+            tarjetas.ColumnCount = 3;
+            tarjetas.RowCount = 1;
+
+            tarjetas.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Percent, 33.33F));
+            tarjetas.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Percent, 33.33F));
+            tarjetas.ColumnStyles.Add(
+                new ColumnStyle(SizeType.Percent, 33.34F));
+
+            CrearTarjeta(
+                tarjetas, "IMC INICIAL", 0, out lblInicial);
+
+            CrearTarjeta(
+                tarjetas, "IMC ACTUAL", 1, out lblActual);
+
+            CrearTarjeta(
+                tarjetas, "TENDENCIA", 2, out lblTendencia);
+
+            principal.Controls.Add(tarjetas, 0, 2);
+
+            // Categoría actual
             lblCategoria = new Label();
             lblCategoria.Text = "Categoría actual: —";
             lblCategoria.Font = new Font(
                 "Segoe UI", 12F, FontStyle.Bold);
             lblCategoria.ForeColor = oscuro;
-            lblCategoria.Location = new Point(35, 325);
-            lblCategoria.Size = new Size(1000, 35);
-            Controls.Add(lblCategoria);
+            lblCategoria.Dock = DockStyle.Fill;
+            lblCategoria.Padding = new Padding(8, 9, 0, 0);
+
+            principal.Controls.Add(lblCategoria, 0, 3);
+
+            // Contenedor del gráfico
+            TableLayoutPanel seccionGrafico =
+                new TableLayoutPanel();
+
+            seccionGrafico.Dock = DockStyle.Fill;
+            seccionGrafico.ColumnCount = 1;
+            seccionGrafico.RowCount = 2;
+            seccionGrafico.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 35));
+            seccionGrafico.RowStyles.Add(
+                new RowStyle(SizeType.Percent, 100));
 
             Label lblGrafico = new Label();
             lblGrafico.Text = "GRÁFICO DE EVOLUCIÓN";
             lblGrafico.Font = new Font(
                 "Segoe UI", 12F, FontStyle.Bold);
             lblGrafico.ForeColor = oscuro;
-            lblGrafico.Location = new Point(35, 365);
-            lblGrafico.AutoSize = true;
-            Controls.Add(lblGrafico);
+            lblGrafico.Dock = DockStyle.Fill;
+            lblGrafico.Padding = new Padding(5, 3, 0, 0);
 
-            panelGrafico = new Panel();
-            panelGrafico.Location = new Point(35, 402);
-            panelGrafico.Size = new Size(1020, 170);
+            seccionGrafico.Controls.Add(lblGrafico, 0, 0);
+
+            panelGrafico = new PanelGrafico();
+            panelGrafico.Dock = DockStyle.Fill;
+            panelGrafico.Margin = new Padding(4, 0, 4, 8);
             panelGrafico.BackColor = Color.White;
             panelGrafico.Paint += DibujarGrafico;
-            Controls.Add(panelGrafico);
+
+            seccionGrafico.Controls.Add(panelGrafico, 0, 1);
+            principal.Controls.Add(seccionGrafico, 0, 4);
+
+            // Tabla de historial
+            TableLayoutPanel seccionTabla = new TableLayoutPanel();
+            seccionTabla.Dock = DockStyle.Fill;
+            seccionTabla.ColumnCount = 1;
+            seccionTabla.RowCount = 2;
+
+            seccionTabla.RowStyles.Add(
+                new RowStyle(SizeType.Absolute, 35));
+            seccionTabla.RowStyles.Add(
+                new RowStyle(SizeType.Percent, 100));
 
             Label lblTabla = new Label();
             lblTabla.Text = "HISTORIAL DE CONSULTAS";
             lblTabla.Font = new Font(
                 "Segoe UI", 12F, FontStyle.Bold);
             lblTabla.ForeColor = oscuro;
-            lblTabla.Location = new Point(35, 593);
-            lblTabla.AutoSize = true;
-            Controls.Add(lblTabla);
+            lblTabla.Dock = DockStyle.Fill;
+            lblTabla.Padding = new Padding(5, 3, 0, 0);
 
-            dgvConsultas = new DataGridView();
-            dgvConsultas.Location = new Point(35, 625);
-            dgvConsultas.Size = new Size(1020, 105);
-            dgvConsultas.ReadOnly = true;
-            dgvConsultas.AllowUserToAddRows = false;
-            dgvConsultas.AllowUserToDeleteRows = false;
-            dgvConsultas.RowHeadersVisible = false;
-            dgvConsultas.SelectionMode =
-                DataGridViewSelectionMode.FullRowSelect;
-            dgvConsultas.AutoSizeColumnsMode =
-                DataGridViewAutoSizeColumnsMode.Fill;
-            dgvConsultas.BackgroundColor = Color.White;
-            dgvConsultas.BorderStyle = BorderStyle.None;
-            dgvConsultas.EnableHeadersVisualStyles = false;
-            dgvConsultas.ColumnHeadersDefaultCellStyle.BackColor =
-                oscuro;
-            dgvConsultas.ColumnHeadersDefaultCellStyle.ForeColor =
-                Color.White;
-            dgvConsultas.DefaultCellStyle.SelectionBackColor =
-                Color.FromArgb(209, 237, 234);
-            dgvConsultas.DefaultCellStyle.SelectionForeColor =
-                oscuro;
-            Controls.Add(dgvConsultas);
+            seccionTabla.Controls.Add(lblTabla, 0, 0);
+
+            dgvConsultas = CrearTabla();
+            dgvConsultas.Dock = DockStyle.Fill;
+            dgvConsultas.Margin = new Padding(4, 0, 4, 6);
+
+            seccionTabla.Controls.Add(dgvConsultas, 0, 1);
+            principal.Controls.Add(seccionTabla, 0, 5);
+
+            // Estado
+            lblEstado = new Label();
+            lblEstado.Text = "Esperando información...";
+            lblEstado.ForeColor = gris;
+            lblEstado.Dock = DockStyle.Fill;
+            lblEstado.TextAlign = ContentAlignment.MiddleLeft;
+            lblEstado.Padding = new Padding(8, 0, 0, 0);
+            principal.Controls.Add(lblEstado, 0, 6);
         }
 
-        // Crear tarjetas de resultados
+        // Crear botones
+        private Button CrearBoton(string texto, Color color)
+        {
+            Button boton = new Button();
+            boton.Text = texto;
+            boton.BackColor = color;
+            boton.ForeColor = Color.White;
+            boton.Dock = DockStyle.Fill;
+            boton.Margin = new Padding(5, 0, 8, 3);
+            boton.Font = new Font(
+                "Segoe UI", 10F, FontStyle.Bold);
+            boton.FlatStyle = FlatStyle.Flat;
+            boton.FlatAppearance.BorderSize = 0;
+            boton.Cursor = Cursors.Hand;
+            return boton;
+        }
+
+        // Crear tarjetas de indicadores
         private void CrearTarjeta(
-            string titulo, int x, out Label valor)
+            TableLayoutPanel contenedor,
+            string titulo,
+            int columna,
+            out Label valor)
         {
             Panel tarjeta = new Panel();
-            tarjeta.Location = new Point(x, 220);
-            tarjeta.Size = new Size(315, 90);
+            tarjeta.Dock = DockStyle.Fill;
+            tarjeta.Margin = new Padding(4, 5, 8, 8);
             tarjeta.BackColor = Color.White;
-            Controls.Add(tarjeta);
 
             Label nombre = new Label();
             nombre.Text = titulo;
             nombre.Font = new Font(
-                "Segoe UI", 9F, FontStyle.Bold);
-            nombre.ForeColor = Color.Gray;
-            nombre.Location = new Point(15, 12);
+                "Segoe UI", 10F, FontStyle.Bold);
+            nombre.ForeColor = gris;
+            nombre.Location = new Point(18, 12);
             nombre.AutoSize = true;
             tarjeta.Controls.Add(nombre);
 
             valor = new Label();
             valor.Text = "—";
             valor.Font = new Font(
-                "Segoe UI", 21F, FontStyle.Bold);
+                "Segoe UI", 24F, FontStyle.Bold);
             valor.ForeColor = turquesa;
-            valor.Location = new Point(15, 38);
-            valor.Size = new Size(280, 43);
+            valor.Location = new Point(15, 40);
+            valor.Size = new Size(300, 52);
+            valor.Anchor =
+                AnchorStyles.Top |
+                AnchorStyles.Left |
+                AnchorStyles.Right;
             tarjeta.Controls.Add(valor);
+
+            contenedor.Controls.Add(tarjeta, columna, 0);
         }
 
-        // Consultar pacientes de Azure SQL
+        // Crear tabla de consultas
+        private DataGridView CrearTabla()
+        {
+            DataGridView tabla = new DataGridView();
+
+            tabla.ReadOnly = true;
+            tabla.AllowUserToAddRows = false;
+            tabla.AllowUserToDeleteRows = false;
+            tabla.AllowUserToResizeRows = false;
+            tabla.MultiSelect = false;
+            tabla.RowHeadersVisible = false;
+
+            tabla.SelectionMode =
+                DataGridViewSelectionMode.FullRowSelect;
+            tabla.AutoSizeColumnsMode =
+                DataGridViewAutoSizeColumnsMode.Fill;
+            tabla.ScrollBars = ScrollBars.Both;
+
+            tabla.BackgroundColor = Color.White;
+            tabla.BorderStyle = BorderStyle.None;
+            tabla.RowTemplate.Height = 34;
+
+            tabla.EnableHeadersVisualStyles = false;
+            tabla.ColumnHeadersHeight = 42;
+            tabla.ColumnHeadersHeightSizeMode =
+                DataGridViewColumnHeadersHeightSizeMode
+                    .DisableResizing;
+
+            tabla.ColumnHeadersDefaultCellStyle.BackColor =
+                oscuro;
+            tabla.ColumnHeadersDefaultCellStyle.ForeColor =
+                Color.White;
+            tabla.ColumnHeadersDefaultCellStyle.Font =
+                new Font("Segoe UI", 10F, FontStyle.Bold);
+
+            tabla.DefaultCellStyle.Font =
+                new Font("Segoe UI", 10F);
+            tabla.DefaultCellStyle.ForeColor = oscuro;
+            tabla.DefaultCellStyle.SelectionBackColor =
+                Color.FromArgb(209, 237, 234);
+            tabla.DefaultCellStyle.SelectionForeColor =
+                oscuro;
+
+            tabla.AlternatingRowsDefaultCellStyle.BackColor =
+                Color.FromArgb(246, 250, 250);
+
+            return tabla;
+        }
+
+        // Cargar pacientes
         private void CargarPacientes()
         {
+            int? anterior = cmbPacientes.SelectedValue is int id
+                ? id
+                : null;
+
+            cargando = true;
+
             try
             {
+                DataTable tabla = new DataTable();
+
                 using (SqlConnection conexion =
                     ConexionBD.CrearConexion())
                 {
@@ -226,27 +401,55 @@ namespace ClinicaSaludBienestar
                     using (SqlDataAdapter adaptador =
                         new SqlDataAdapter(sql, conexion))
                     {
-                        DataTable tabla = new DataTable();
                         adaptador.Fill(tabla);
-
-                        cmbPacientes.DataSource = null;
-                        cmbPacientes.DisplayMember = "Paciente";
-                        cmbPacientes.ValueMember = "PacienteId";
-                        cmbPacientes.DataSource = tabla;
                     }
                 }
+
+                cmbPacientes.DataSource = null;
+                cmbPacientes.DisplayMember = "Paciente";
+                cmbPacientes.ValueMember = "PacienteId";
+                cmbPacientes.DataSource = tabla;
+
+                if (anterior.HasValue)
+                {
+                    foreach (DataRow fila in tabla.Rows)
+                    {
+                        if (Convert.ToInt32(
+                            fila["PacienteId"]) == anterior.Value)
+                        {
+                            cmbPacientes.SelectedValue = anterior.Value;
+                            break;
+                        }
+                    }
+                }
+
+                lblEstado.ForeColor = turquesa;
+                lblEstado.Text =
+                    "Lista recargada correctamente • " +
+                    tabla.Rows.Count + " pacientes";
             }
             catch (Exception ex)
             {
+                lblEstado.ForeColor = Color.Firebrick;
+                lblEstado.Text = "Error al cargar pacientes";
+
                 MessageBox.Show(
-                    "Error al cargar pacientes:\n" + ex.Message,
-                    "Azure SQL",
+                    "No se pudieron cargar los pacientes:\n" +
+                    ex.Message,
+                    "Error de Azure SQL",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
+            finally
+            {
+                cargando = false;
+            }
+
+            if (cmbPacientes.SelectedValue is int seleccionado)
+                CargarEvolucion(seleccionado);
         }
 
-        // Consultar historial de IMC
+        // Cargar historial de IMC
         private void CargarEvolucion(int pacienteId)
         {
             try
@@ -269,7 +472,8 @@ namespace ClinicaSaludBienestar
                         INNER JOIN dbo.Categoria cat
                             ON c.CategoriaId = cat.CategoriaId
                         WHERE c.PacienteId = @PacienteId
-                        ORDER BY c.Fecha, c.ConsultaId;";
+                        ORDER BY c.Fecha ASC,
+                                 c.ConsultaId ASC;";
 
                     using (SqlCommand comando =
                         new SqlCommand(sql, conexion))
@@ -287,8 +491,32 @@ namespace ClinicaSaludBienestar
                 }
 
                 dgvConsultas.DataSource = tabla;
-                dgvConsultas.ClearSelection();
 
+                if (dgvConsultas.Columns.Contains("Fecha"))
+                {
+                    dgvConsultas.Columns["Fecha"]
+                        .DefaultCellStyle.Format = "dd/MM/yyyy";
+                }
+
+                if (dgvConsultas.Columns.Contains("Peso"))
+                {
+                    dgvConsultas.Columns["Peso"]
+                        .DefaultCellStyle.Format = "N2";
+                }
+
+                if (dgvConsultas.Columns.Contains("Estatura"))
+                {
+                    dgvConsultas.Columns["Estatura"]
+                        .DefaultCellStyle.Format = "N2";
+                }
+
+                if (dgvConsultas.Columns.Contains("IMC"))
+                {
+                    dgvConsultas.Columns["IMC"]
+                        .DefaultCellStyle.Format = "N1";
+                }
+
+                dgvConsultas.ClearSelection();
                 puntos.Clear();
 
                 foreach (DataRow fila in tabla.Rows)
@@ -306,147 +534,185 @@ namespace ClinicaSaludBienestar
                     lblActual.Text = "—";
                     lblTendencia.Text = "Sin datos";
                     lblCategoria.Text = "Categoría actual: —";
-                    panelGrafico.Invalidate();
-                    return;
-                }
-
-                decimal inicial = puntos[0].IMC;
-                decimal actual = puntos[puntos.Count - 1].IMC;
-                decimal diferencia = actual - inicial;
-
-                lblInicial.Text = inicial.ToString("F1");
-                lblActual.Text = actual.ToString("F1");
-
-                if (puntos.Count < 2)
-                {
-                    lblTendencia.Text = "Sin tendencia";
-                }
-                else if (diferencia > 0.5m)
-                {
-                    lblTendencia.Text = "Sube";
-                }
-                else if (diferencia < -0.5m)
-                {
-                    lblTendencia.Text = "Baja";
                 }
                 else
                 {
-                    lblTendencia.Text = "Estable";
+                    decimal inicial = puntos[0].IMC;
+                    decimal actual = puntos[puntos.Count - 1].IMC;
+
+                    lblInicial.Text = inicial.ToString("F1");
+                    lblActual.Text = actual.ToString("F1");
+
+                    // Función que superó las pruebas límite
+                    lblTendencia.Text = puntos.Count < 2
+                        ? "Sin tendencia"
+                        : PruebasIMC.CalcularTendencia(
+                            inicial, actual);
+
+                    lblCategoria.Text =
+                        "Categoría actual: " +
+                        Convert.ToString(
+                            tabla.Rows[tabla.Rows.Count - 1]
+                                ["Categoria"]);
                 }
 
-                lblCategoria.Text =
-                    "Categoría actual: " +
-                    Convert.ToString(
-                        tabla.Rows[tabla.Rows.Count - 1]["Categoria"]);
-
                 panelGrafico.Invalidate();
+
+                lblEstado.ForeColor = turquesa;
+                lblEstado.Text =
+                    "Datos recargados correctamente • " +
+                    puntos.Count + " consultas encontradas";
             }
             catch (Exception ex)
             {
                 puntos.Clear();
                 dgvConsultas.DataSource = null;
+
                 lblInicial.Text = "—";
                 lblActual.Text = "—";
                 lblTendencia.Text = "Sin datos";
                 lblCategoria.Text = "Categoría actual: —";
+
                 panelGrafico.Invalidate();
 
+                lblEstado.ForeColor = Color.Firebrick;
+                lblEstado.Text = "Error al cargar evolución";
+
                 MessageBox.Show(
-                    "Error al consultar evolución:\n" + ex.Message,
-                    "Azure SQL",
+                    "No se pudo consultar la evolución:\n" +
+                    ex.Message,
+                    "Error de Azure SQL",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
         }
 
-        // Dibujar gráfico sin paquetes adicionales
-        private void DibujarGrafico(object sender, PaintEventArgs e)
+        // Dibujar gráfico adaptable
+        private void DibujarGrafico(
+            object? sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            int ancho = panelGrafico.ClientSize.Width;
+            int alto = panelGrafico.ClientSize.Height;
+
+            if (ancho < 140 || alto < 100)
+                return;
 
             if (puntos.Count == 0)
             {
                 g.DrawString(
                     "Selecciona un paciente con consultas.",
-                    Font, Brushes.Gray, 25, 65);
+                    Font, Brushes.Gray, 25, 25);
                 return;
             }
 
-            int izquierda = 65;
-            int derecha = panelGrafico.Width - 55;
-            int arriba = 30;
-            int abajo = panelGrafico.Height - 45;
+            int izquierda = 75;
+            int derecha = ancho - 45;
+            int arriba = 45;
+            int abajo = alto - 55;
 
             decimal minimo = puntos[0].IMC;
             decimal maximo = puntos[0].IMC;
 
             foreach (PuntoIMC punto in puntos)
             {
-                if (punto.IMC < minimo) minimo = punto.IMC;
-                if (punto.IMC > maximo) maximo = punto.IMC;
+                if (punto.IMC < minimo)
+                    minimo = punto.IMC;
+
+                if (punto.IMC > maximo)
+                    maximo = punto.IMC;
             }
 
-            // Margen vertical para que no se corte la línea
+            // Margen para que la línea no toque el borde
             minimo -= 1m;
             maximo += 1m;
 
             using (Pen eje = new Pen(Color.LightGray, 1))
+            using (Font fuente = new Font("Segoe UI", 9F))
             {
-                g.DrawLine(eje, izquierda, abajo, derecha, abajo);
-                g.DrawLine(eje, izquierda, arriba, izquierda, abajo);
+                // Líneas horizontales de referencia
+                for (int i = 0; i <= 4; i++)
+                {
+                    float y = arriba +
+                        (abajo - arriba) * i / 4f;
+
+                    g.DrawLine(eje, izquierda, y, derecha, y);
+
+                    decimal valor = maximo -
+                        (maximo - minimo) * i / 4m;
+
+                    g.DrawString(
+                        valor.ToString("F1"),
+                        fuente,
+                        Brushes.Gray,
+                        15,
+                        y - 9);
+                }
+
+                g.DrawLine(
+                    eje, izquierda, arriba, izquierda, abajo);
             }
 
             PointF? anterior = null;
 
-            for (int i = 0; i < puntos.Count; i++)
+            using (Font fuente = new Font("Segoe UI", 9F))
+            using (Pen linea = new Pen(turquesa, 3))
+            using (Brush marcador = new SolidBrush(turquesa))
             {
-                float x = puntos.Count == 1
-                    ? (izquierda + derecha) / 2f
-                    : izquierda +
-                    (derecha - izquierda) * i /
-                    (float)(puntos.Count - 1);
-
-                float proporcion = (float)(
-                    (puntos[i].IMC - minimo) /
-                    (maximo - minimo));
-
-                float y = abajo -
-                    (abajo - arriba) * proporcion;
-
-                PointF actual = new PointF(x, y);
-
-                if (anterior.HasValue)
+                for (int i = 0; i < puntos.Count; i++)
                 {
-                    using (Pen linea = new Pen(turquesa, 3))
+                    float x = puntos.Count == 1
+                        ? (izquierda + derecha) / 2f
+                        : izquierda +
+                          (derecha - izquierda) * i /
+                          (float)(puntos.Count - 1);
+
+                    float proporcion = (float)(
+                        (puntos[i].IMC - minimo) /
+                        (maximo - minimo));
+
+                    float y = abajo -
+                        (abajo - arriba) * proporcion;
+
+                    PointF actual = new PointF(x, y);
+
+                    if (anterior.HasValue)
                     {
-                        g.DrawLine(linea, anterior.Value, actual);
+                        g.DrawLine(
+                            linea, anterior.Value, actual);
                     }
-                }
 
-                using (Brush marcador = new SolidBrush(turquesa))
-                {
-                    g.FillEllipse(marcador, x - 5, y - 5, 10, 10);
-                }
+                    g.FillEllipse(
+                        marcador, x - 5, y - 5, 10, 10);
 
-                using (Font fuente = new Font("Segoe UI", 9F))
-                {
-                    string valor = puntos[i].IMC.ToString("F1");
-                    string fecha = puntos[i].Fecha.ToString("dd/MM");
+                    string valor =
+                        puntos[i].IMC.ToString("F1");
 
-                    SizeF anchoValor = g.MeasureString(valor, fuente);
-                    SizeF anchoFecha = g.MeasureString(fecha, fuente);
+                    string fecha =
+                        puntos[i].Fecha.ToString("dd/MM/yyyy");
 
-                    g.DrawString(
-                        valor, fuente, Brushes.DarkSlateGray,
-                        x - anchoValor.Width / 2, y - 25);
+                    SizeF tamValor =
+                        g.MeasureString(valor, fuente);
+
+                    SizeF tamFecha =
+                        g.MeasureString(fecha, fuente);
 
                     g.DrawString(
-                        fecha, fuente, Brushes.Gray,
-                        x - anchoFecha.Width / 2, abajo + 10);
-                }
+                        valor, fuente,
+                        Brushes.DarkSlateGray,
+                        x - tamValor.Width / 2,
+                        y - 25);
 
-                anterior = actual;
+                    g.DrawString(
+                        fecha, fuente,
+                        Brushes.Gray,
+                        x - tamFecha.Width / 2,
+                        abajo + 12);
+
+                    anterior = actual;
+                }
             }
         }
     }
