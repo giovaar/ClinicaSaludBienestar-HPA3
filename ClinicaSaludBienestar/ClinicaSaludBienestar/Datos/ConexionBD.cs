@@ -6,17 +6,20 @@ namespace ClinicaSaludBienestar.Datos
 {
     public static class ConexionBD
     {
-        // Datos del servidor Azure SQL
+        // Servidor de Azure SQL
         private const string Servidor =
             "sql-hpa3-grupo1.database.windows.net";
 
-        private const string BaseDatos = "ClinicaDB_Pruebas";
+        // Única base de datos del proyecto
+        private const string BaseDatos = "ClinicaDB";
 
+        // Usuario de Azure SQL
         private const string Usuario = "gio_app";
 
-        // Crear conexión a Azure SQL
+        // Crear conexión
         public static SqlConnection CrearConexion()
         {
+            // Obtener contraseña de Windows
             string clave = Environment.GetEnvironmentVariable(
                 "CLINICA_SQL_PASSWORD",
                 EnvironmentVariableTarget.User) ?? "";
@@ -24,10 +27,10 @@ namespace ClinicaSaludBienestar.Datos
             if (string.IsNullOrWhiteSpace(clave))
             {
                 throw new InvalidOperationException(
-                    "No se ha configurado la contraseña de Azure SQL.");
+                    "No se ha configurado la contraseña " +
+                    "de Azure SQL en Windows.");
             }
 
-            // Configurar conexión
             SqlConnectionStringBuilder configuracion =
                 new SqlConnectionStringBuilder();
 
@@ -36,14 +39,14 @@ namespace ClinicaSaludBienestar.Datos
             configuracion.UserID = Usuario;
             configuracion.Password = clave;
 
-            // Seguridad
+            // Configuración de seguridad
             configuracion.Encrypt = true;
             configuracion.TrustServerCertificate = false;
 
-            // Tiempo de conexión
+            // Tiempo de espera
             configuracion.ConnectTimeout = 60;
 
-            // Recuperación de conexiones interrumpidas
+            // Reintentos de conexión
             configuracion.ConnectRetryCount = 3;
             configuracion.ConnectRetryInterval = 10;
 
