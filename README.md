@@ -1,4 +1,4 @@
-# 🏥 Clínica Salud y Bienestar
+#  Clínica Salud y Bienestar
 
 ### Sistema de gestión clínica y seguimiento del Índice de Masa Corporal (IMC)
 
@@ -6,27 +6,27 @@ Aplicación de escritorio desarrollada en **C# y Windows Forms**, conectada a un
 
 Este proyecto fue desarrollado como parte de la asignatura **Herramientas de Programación Aplicadas III (HPA III)** de la Universidad Tecnológica de Panamá (UTP).
 
-## 📋 Descripción
+##  Descripción
 
 Clínica Salud y Bienestar permite gestionar información de pacientes y sus consultas, calcular automáticamente el IMC, clasificar los resultados según rangos almacenados en la base de datos y visualizar estadísticas mediante informes y gráficos.
 
 El sistema integra una interfaz gráfica, operaciones CRUD y consultas SQL parametrizadas.
 
-## ✨ Funcionalidades principales
+##  Funcionalidades principales
 
-- 🔐 Inicio de sesión con un máximo de tres intentos.
-- 👥 Registro y administración de pacientes.
-- 🩺 Registro y administración de consultas médicas.
-- 📊 Cálculo automático del IMC.
-- 🏷️ Clasificación por categorías de IMC.
-- 📈 Gráfico de evolución del IMC por paciente.
-- 🔄 Identificación de tendencias: Sube, Baja o Estable.
-- 📋 Historial de consultas médicas.
-- 📑 Informe general con estadísticas de pacientes.
-- ☁️ Conexión a una base de datos alojada en Azure SQL.
-- ✅ Validaciones y manejo de excepciones.
+-  Inicio de sesión con un máximo de tres intentos.
+-  Registro y administración de pacientes.
+-  Registro y administración de consultas médicas.
+-  Cálculo automático del IMC.
+-  Clasificación por categorías de IMC.
+-  Gráfico de evolución del IMC por paciente.
+-  Identificación de tendencias: Sube, Baja o Estable.
+-  Historial de consultas médicas.
+-  Informe general con estadísticas de pacientes.
+-  Conexión a una base de datos alojada en Azure SQL.
+-  Validaciones y manejo de excepciones.
 
-## 🛠️ Tecnologías utilizadas
+##  Tecnologías utilizadas
 
 | Tecnología | Uso |
 |---|---|
@@ -39,7 +39,7 @@ El sistema integra una interfaz gráfica, operaciones CRUD y consultas SQL param
 | Visual Studio | Entorno de desarrollo |
 | Git y GitHub | Control de versiones |
 
-## 🗄️ Base de datos
+##  Base de datos
 
 La base de datos se organiza en tres entidades principales:
 
@@ -56,7 +56,7 @@ La base de datos se organiza en tres entidades principales:
 - Cada consulta tiene una categoría de IMC.
 - Una categoría puede estar asociada a múltiples consultas.
 
-## 🖥️ Capturas de pantalla
+##  Capturas de pantalla
 
 Aquí se incluirán imágenes de las principales pantallas del sistema:
 
@@ -67,7 +67,7 @@ Aquí se incluirán imágenes de las principales pantallas del sistema:
 - Informe general.
 - Evolución del IMC.
 
-## 🚀 Instalación y ejecución
+##  Instalación y ejecución
 
 ### Requisitos
 
@@ -113,7 +113,7 @@ Para analizar la evolución, se compara el IMC de la primera consulta con el de 
 - **Baja:** diferencia menor a -0.5.
 - **Estable:** diferencia entre -0.5 y 0.5, inclusive.
 
-## 👨‍💻 Desarrollo académico
+##  Desarrollo académico
 
 **Institución:** Universidad Tecnológica de Panamá (UTP)  
 **Asignatura:** Herramientas de Programación Aplicadas III  
@@ -122,13 +122,13 @@ Para analizar la evolución, se compara el IMC de la primera consulta con el de 
 
 Proyecto académico desarrollado mediante trabajo colaborativo.
 
-## 🔒 Seguridad y privacidad
+##  Seguridad y privacidad
 
 El repositorio no debe contener contraseñas, claves privadas ni datos clínicos reales.
 
 Los datos utilizados para las pruebas académicas son ficticios y no deben interpretarse como información médica real.
 
-## 🔮 Mejoras futuras
+##  Mejoras futuras
 
 - Modernización de la interfaz gráfica.
 - Autenticación y administración de roles.
@@ -137,7 +137,7 @@ Los datos utilizados para las pruebas académicas son ficticios y no deben inter
 - API REST con ASP.NET Core.
 - Implementación de una plataforma accesible mediante dominio propio.
 
-## 📄 Licencia
+##  Licencia
 
 Proyecto académico. Las condiciones de reutilización y distribución se definirán antes de publicar una licencia.
 
