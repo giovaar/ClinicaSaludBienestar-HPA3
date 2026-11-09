@@ -19,9 +19,6 @@ namespace ClinicaSaludBienestar
         private readonly Color fondo =
             Color.FromArgb(240, 247, 247);
 
-        private readonly Color gris =
-            Color.FromArgb(105, 127, 132);
-
         private readonly DateTime fechaCorte =
             new DateTime(2026, 11, 10);
 
@@ -36,396 +33,340 @@ namespace ClinicaSaludBienestar
         private Label lblCategoria = null!;
         private Button btnGuardar = null!;
 
+        public bool RegistroRealizado { get; private set; }
+
         public frmRegistroPaciente()
         {
-            Text = "Clínica Salud y Bienestar | Nuevo paciente";
-            ClientSize = new Size(850, 760);
+            Text = "Clínica Salud y Bienestar | Registrar paciente";
             StartPosition = FormStartPosition.CenterParent;
-            FormBorderStyle = FormBorderStyle.FixedSingle;
-            MaximizeBox = false;
+            ClientSize = new Size(850, 760);
+            MinimumSize = new Size(850, 760);
             BackColor = fondo;
             Font = new Font("Segoe UI", 10F);
+            AutoScroll = true;
 
             CrearInterfaz();
         }
 
-        // Crear formulario
         private void CrearInterfaz()
         {
-            Panel encabezado = new Panel();
-            encabezado.Dock = DockStyle.Top;
-            encabezado.Height = 105;
-            encabezado.BackColor = oscuro;
+            Panel encabezado = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 100,
+                BackColor = oscuro
+            };
+
             Controls.Add(encabezado);
 
-            Label titulo = new Label();
-            titulo.Text = "REGISTRAR PACIENTE";
-            titulo.Font = new Font(
-                "Segoe UI", 22F, FontStyle.Bold);
-            titulo.ForeColor = Color.White;
-            titulo.Location = new Point(35, 17);
-            titulo.AutoSize = true;
+            Label titulo = new Label
+            {
+                Text = "REGISTRAR PACIENTE",
+                Font = new Font(
+                    "Segoe UI", 22F, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(30, 15),
+                AutoSize = true
+            };
+
             encabezado.Controls.Add(titulo);
 
-            Label subtitulo = new Label();
-            subtitulo.Text =
-                "Información personal y primera consulta";
-            subtitulo.ForeColor = Color.LightCyan;
-            subtitulo.Location = new Point(38, 70);
-            subtitulo.AutoSize = true;
+            Label subtitulo = new Label
+            {
+                Text = "Datos personales + primera consulta",
+                ForeColor = Color.LightCyan,
+                Location = new Point(33, 65),
+                AutoSize = true
+            };
+
             encabezado.Controls.Add(subtitulo);
 
-            // Datos personales
-            Panel panelPaciente = CrearPanel(125, 290);
+            Panel cuerpo = new Panel
+            {
+                Location = new Point(20, 115),
+                Size = new Size(795, 615),
+                BackColor = Color.White
+            };
 
-            CrearTitulo(
-                panelPaciente, "DATOS PERSONALES", 20, 15);
+            Controls.Add(cuerpo);
 
-            CrearEtiqueta(panelPaciente, "Nombre", 25, 65);
+            Label lblDatos = Etiqueta(
+                "DATOS PERSONALES", 20, 20, 15, true);
 
-            txtNombre = CrearTexto(25, 92, 350);
+            cuerpo.Controls.Add(lblDatos);
+
+            cuerpo.Controls.Add(
+                Etiqueta("Nombre", 23, 75));
+
+            txtNombre = Caja(23, 103, 350);
             txtNombre.MaxLength = 60;
-            panelPaciente.Controls.Add(txtNombre);
+            cuerpo.Controls.Add(txtNombre);
 
-            CrearEtiqueta(panelPaciente, "Apellido", 425, 65);
+            cuerpo.Controls.Add(
+                Etiqueta("Apellido", 410, 75));
 
-            txtApellido = CrearTexto(425, 92, 350);
+            txtApellido = Caja(410, 103, 350);
             txtApellido.MaxLength = 60;
-            panelPaciente.Controls.Add(txtApellido);
+            cuerpo.Controls.Add(txtApellido);
 
-            CrearEtiqueta(panelPaciente, "Género", 25, 165);
+            cuerpo.Controls.Add(
+                Etiqueta("Género", 23, 160));
 
-            cmbGenero = new ComboBox();
-            cmbGenero.Location = new Point(25, 192);
-            cmbGenero.Size = new Size(350, 34);
-            cmbGenero.DropDownStyle =
-                ComboBoxStyle.DropDownList;
-            cmbGenero.Font = new Font("Segoe UI", 11F);
+            cmbGenero = new ComboBox
+            {
+                Location = new Point(23, 189),
+                Width = 350,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 11F)
+            };
 
-            cmbGenero.Items.Add("Masculino");
-            cmbGenero.Items.Add("Femenino");
+            cmbGenero.Items.AddRange(
+                new object[] { "Masculino", "Femenino" });
+
             cmbGenero.SelectedIndex = -1;
+            cuerpo.Controls.Add(cmbGenero);
 
-            panelPaciente.Controls.Add(cmbGenero);
+            cuerpo.Controls.Add(
+                Etiqueta("Fecha de nacimiento", 410, 160));
 
-            CrearEtiqueta(
-                panelPaciente, "Fecha de nacimiento", 425, 165);
-
-            dtpNacimiento = CrearFecha(425, 192, 350);
+            dtpNacimiento = Fecha(410, 189, 350);
             dtpNacimiento.MinDate = new DateTime(1900, 1, 1);
             dtpNacimiento.MaxDate =
                 fechaCorte.AddYears(-18);
-            dtpNacimiento.Value = new DateTime(2000, 1, 1);
-            panelPaciente.Controls.Add(dtpNacimiento);
+            dtpNacimiento.Value =
+                new DateTime(2000, 1, 1);
 
-            // Primera consulta
-            Panel panelConsulta = CrearPanel(430, 220);
+            cuerpo.Controls.Add(dtpNacimiento);
 
-            CrearTitulo(
-                panelConsulta, "PRIMERA CONSULTA", 20, 15);
+            cuerpo.Controls.Add(
+                Etiqueta("PRIMERA CONSULTA", 20, 245, 15, true));
 
-            CrearEtiqueta(panelConsulta, "Fecha", 25, 65);
+            cuerpo.Controls.Add(
+                Etiqueta("Fecha de consulta", 23, 295));
 
-            dtpConsulta = CrearFecha(25, 92, 220);
+            dtpConsulta = Fecha(23, 325, 220);
             dtpConsulta.MinDate = new DateTime(1900, 1, 1);
             dtpConsulta.MaxDate = fechaCorte;
             dtpConsulta.Value = fechaCorte;
-            panelConsulta.Controls.Add(dtpConsulta);
+            cuerpo.Controls.Add(dtpConsulta);
 
-            CrearEtiqueta(panelConsulta, "Peso (kg)", 275, 65);
+            cuerpo.Controls.Add(
+                Etiqueta("Peso (kg)", 280, 295));
 
-            nudPeso = CrearNumero(275, 92, 220);
-            nudPeso.DecimalPlaces = 2;
+            nudPeso = Numero(280, 325, 200);
             nudPeso.Minimum = 1m;
             nudPeso.Maximum = 500m;
-            nudPeso.Increment = 0.10m;
             nudPeso.Value = 75m;
-            panelConsulta.Controls.Add(nudPeso);
+            nudPeso.Increment = 0.10m;
+            cuerpo.Controls.Add(nudPeso);
 
-            CrearEtiqueta(panelConsulta, "Estatura (m)", 525, 65);
+            cuerpo.Controls.Add(
+                Etiqueta("Estatura (m)", 515, 295));
 
-            nudEstatura = CrearNumero(525, 92, 250);
-            nudEstatura.DecimalPlaces = 2;
+            nudEstatura = Numero(515, 325, 245);
             nudEstatura.Minimum = 0.50m;
             nudEstatura.Maximum = 2.50m;
-            nudEstatura.Increment = 0.01m;
             nudEstatura.Value = 1.75m;
-            panelConsulta.Controls.Add(nudEstatura);
+            nudEstatura.Increment = 0.01m;
+            cuerpo.Controls.Add(nudEstatura);
 
-            Label lblTituloIMC = new Label();
-            lblTituloIMC.Text = "IMC CALCULADO";
-            lblTituloIMC.Font = new Font(
-                "Segoe UI", 9F, FontStyle.Bold);
-            lblTituloIMC.ForeColor = gris;
-            lblTituloIMC.Location = new Point(25, 155);
-            lblTituloIMC.AutoSize = true;
-            panelConsulta.Controls.Add(lblTituloIMC);
+            cuerpo.Controls.Add(
+                Etiqueta("IMC CALCULADO", 23, 390));
 
-            lblIMC = new Label();
-            lblIMC.Text = "—";
-            lblIMC.Font = new Font(
-                "Segoe UI", 23F, FontStyle.Bold);
-            lblIMC.ForeColor = turquesa;
-            lblIMC.Location = new Point(185, 143);
-            lblIMC.Size = new Size(130, 48);
-            panelConsulta.Controls.Add(lblIMC);
+            lblIMC = new Label
+            {
+                Text = "24.5",
+                Font = new Font(
+                    "Segoe UI", 24F, FontStyle.Bold),
+                ForeColor = turquesa,
+                Location = new Point(25, 419),
+                Size = new Size(145, 50)
+            };
 
-            lblCategoria = new Label();
-            lblCategoria.Text =
-                "La categoría se asignará desde Azure SQL";
-            lblCategoria.ForeColor = gris;
-            lblCategoria.Location = new Point(340, 164);
-            lblCategoria.Size = new Size(430, 32);
-            panelConsulta.Controls.Add(lblCategoria);
+            cuerpo.Controls.Add(lblIMC);
 
-            nudPeso.ValueChanged += (s, e) => CalcularIMC();
-            nudEstatura.ValueChanged += (s, e) => CalcularIMC();
+            lblCategoria = new Label
+            {
+                Text = "Categoría: se consultará en Azure SQL",
+                ForeColor = oscuro,
+                Location = new Point(200, 432),
+                Size = new Size(550, 35),
+                Font = new Font("Segoe UI", 10F)
+            };
 
-            // Botones
-            btnGuardar = CrearBoton(
-                "GUARDAR PACIENTE",
-                35, 675, 275, turquesa);
+            cuerpo.Controls.Add(lblCategoria);
 
-            btnGuardar.Click += btnGuardar_Click;
-            Controls.Add(btnGuardar);
+            nudPeso.ValueChanged +=
+                (s, e) => ActualizarIMC();
 
-            Button btnLimpiar = CrearBoton(
-                "LIMPIAR",
-                330, 675, 180, oscuro);
+            nudEstatura.ValueChanged +=
+                (s, e) => ActualizarIMC();
+
+            btnGuardar = Boton(
+                "GUARDAR PACIENTE", 23, 520, 255, turquesa);
+
+            btnGuardar.Click += Guardar_Click;
+            cuerpo.Controls.Add(btnGuardar);
+
+            Button btnLimpiar = Boton(
+                "LIMPIAR", 300, 520, 190, oscuro);
 
             btnLimpiar.Click += (s, e) => Limpiar();
-            Controls.Add(btnLimpiar);
+            cuerpo.Controls.Add(btnLimpiar);
 
-            Button btnCerrar = CrearBoton(
-                "CERRAR",
-                530, 675, 180, oscuro);
+            Button btnCerrar = Boton(
+                "CERRAR", 515, 520, 245, oscuro);
 
             btnCerrar.Click += (s, e) => Close();
-            Controls.Add(btnCerrar);
+            cuerpo.Controls.Add(btnCerrar);
 
-            CalcularIMC();
+            ActualizarIMC();
         }
 
-        // Crear panel
-        private Panel CrearPanel(int y, int alto)
+        private Label Etiqueta(
+            string texto,
+            int x,
+            int y,
+            int tamano = 10,
+            bool negrita = false)
         {
-            Panel panel = new Panel();
-            panel.Location = new Point(25, y);
-            panel.Size = new Size(800, alto);
-            panel.BackColor = Color.White;
-            Controls.Add(panel);
-            return panel;
+            return new Label
+            {
+                Text = texto,
+                Location = new Point(x, y),
+                AutoSize = true,
+                Font = new Font(
+                    "Segoe UI",
+                    tamano,
+                    negrita
+                        ? FontStyle.Bold
+                        : FontStyle.Regular),
+                ForeColor = oscuro
+            };
         }
 
-        // Crear título de sección
-        private void CrearTitulo(
-            Control padre, string texto, int x, int y)
+        private TextBox Caja(int x, int y, int ancho)
         {
-            Label etiqueta = new Label();
-            etiqueta.Text = texto;
-            etiqueta.Font = new Font(
-                "Segoe UI", 13F, FontStyle.Bold);
-            etiqueta.ForeColor = oscuro;
-            etiqueta.Location = new Point(x, y);
-            etiqueta.AutoSize = true;
-            padre.Controls.Add(etiqueta);
+            return new TextBox
+            {
+                Location = new Point(x, y),
+                Width = ancho,
+                Font = new Font("Segoe UI", 11F)
+            };
         }
 
-        // Crear etiquetas
-        private void CrearEtiqueta(
-            Control padre, string texto, int x, int y)
-        {
-            Label etiqueta = new Label();
-            etiqueta.Text = texto;
-            etiqueta.Font = new Font(
-                "Segoe UI", 10F, FontStyle.Bold);
-            etiqueta.ForeColor = oscuro;
-            etiqueta.Location = new Point(x, y);
-            etiqueta.AutoSize = true;
-            padre.Controls.Add(etiqueta);
-        }
-
-        // Crear caja de texto
-        private TextBox CrearTexto(int x, int y, int ancho)
-        {
-            TextBox caja = new TextBox();
-            caja.Location = new Point(x, y);
-            caja.Size = new Size(ancho, 35);
-            caja.Font = new Font("Segoe UI", 11F);
-            return caja;
-        }
-
-        // Crear selector de fecha
-        private DateTimePicker CrearFecha(
+        private DateTimePicker Fecha(
             int x, int y, int ancho)
         {
-            DateTimePicker fecha = new DateTimePicker();
-            fecha.Location = new Point(x, y);
-            fecha.Size = new Size(ancho, 35);
-            fecha.Font = new Font("Segoe UI", 11F);
-            fecha.Format = DateTimePickerFormat.Custom;
-            fecha.CustomFormat = "dd/MM/yyyy";
-            return fecha;
+            return new DateTimePicker
+            {
+                Location = new Point(x, y),
+                Width = ancho,
+                Font = new Font("Segoe UI", 11F),
+                Format = DateTimePickerFormat.Custom,
+                CustomFormat = "dd/MM/yyyy"
+            };
         }
 
-        // Crear control numérico
-        private NumericUpDown CrearNumero(
+        private NumericUpDown Numero(
             int x, int y, int ancho)
         {
-            NumericUpDown numero = new NumericUpDown();
-            numero.Location = new Point(x, y);
-            numero.Size = new Size(ancho, 35);
-            numero.Font = new Font("Segoe UI", 11F);
-            numero.ThousandsSeparator = false;
-            return numero;
+            return new NumericUpDown
+            {
+                Location = new Point(x, y),
+                Width = ancho,
+                Font = new Font("Segoe UI", 11F),
+                DecimalPlaces = 2
+            };
         }
 
-        // Crear botón
-        private Button CrearBoton(
-            string texto, int x, int y,
-            int ancho, Color color)
+        private Button Boton(
+            string texto,
+            int x,
+            int y,
+            int ancho,
+            Color color)
         {
-            Button boton = new Button();
-            boton.Text = texto;
-            boton.Location = new Point(x, y);
-            boton.Size = new Size(ancho, 45);
-            boton.Font = new Font(
-                "Segoe UI", 10F, FontStyle.Bold);
-            boton.BackColor = color;
-            boton.ForeColor = Color.White;
-            boton.FlatStyle = FlatStyle.Flat;
+            Button boton = new Button
+            {
+                Text = texto,
+                Location = new Point(x, y),
+                Size = new Size(ancho, 45),
+                BackColor = color,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font(
+                    "Segoe UI", 10F, FontStyle.Bold),
+                Cursor = Cursors.Hand
+            };
+
             boton.FlatAppearance.BorderSize = 0;
-            boton.Cursor = Cursors.Hand;
             return boton;
         }
 
-        // Calcular IMC
         private decimal ObtenerIMC()
         {
-            decimal peso = nudPeso.Value;
-            decimal estatura = nudEstatura.Value;
-
-            decimal imc =
-                peso / (estatura * estatura);
-
-            return Math.Round(
-                imc, 1, MidpointRounding.AwayFromZero);
+            return ConsultaDatos.CalcularIMC(
+                nudPeso.Value, nudEstatura.Value);
         }
 
-        private void CalcularIMC()
+        private void ActualizarIMC()
         {
-            decimal imc = ObtenerIMC();
-            lblIMC.Text = imc.ToString("F1");
+            lblIMC.Text = ObtenerIMC().ToString("F1");
+            lblCategoria.Text =
+                "Categoría: se asignará desde Azure SQL";
         }
 
-        // Validar los datos
-        private bool ValidarDatos()
+        private void ValidarDatos()
         {
             if (string.IsNullOrWhiteSpace(txtNombre.Text))
-            {
-                MostrarAviso("Escribe el nombre del paciente.");
-                txtNombre.Focus();
-                return false;
-            }
+                throw new ArgumentException(
+                    "Escribe el nombre del paciente.");
 
             if (string.IsNullOrWhiteSpace(txtApellido.Text))
-            {
-                MostrarAviso("Escribe el apellido del paciente.");
-                txtApellido.Focus();
-                return false;
-            }
+                throw new ArgumentException(
+                    "Escribe el apellido del paciente.");
 
             if (cmbGenero.SelectedIndex == -1)
-            {
-                MostrarAviso("Selecciona el género.");
-                cmbGenero.Focus();
-                return false;
-            }
+                throw new ArgumentException(
+                    "Selecciona el género.");
 
-            if (dtpNacimiento.Value.Date > fechaCorte.AddYears(-18))
-            {
-                MostrarAviso(
-                    "El paciente debe tener al menos 18 años.");
-                return false;
-            }
+            if (dtpNacimiento.Value.Date >
+                fechaCorte.AddYears(-18))
+                throw new ArgumentException(
+                    "El paciente debe ser mayor de edad.");
 
             if (dtpConsulta.Value.Date <
                 dtpNacimiento.Value.Date)
-            {
-                MostrarAviso(
-                    "La consulta no puede ser anterior al nacimiento.");
-                return false;
-            }
+                throw new ArgumentException(
+                    "La consulta no puede ser anterior " +
+                    "al nacimiento.");
 
-            if (nudPeso.Value <= 0 ||
-                nudEstatura.Value <= 0)
-            {
-                MostrarAviso(
-                    "El peso y la estatura deben ser positivos.");
-                return false;
-            }
-
-            return true;
+            if (ObtenerIMC() > 999.9m)
+                throw new ArgumentException(
+                    "El IMC excede el rango permitido.");
         }
 
-        private void MostrarAviso(string mensaje)
-        {
-            MessageBox.Show(
-                mensaje,
-                "Validación de datos",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Warning);
-        }
-
-        // Buscar categoría en la base de datos
-        private int ObtenerCategoria(
-            SqlConnection conexion,
-            SqlTransaction transaccion,
-            decimal imc)
-        {
-            string sql = @"
-                SELECT TOP (1) CategoriaId
-                FROM dbo.Categoria
-                WHERE LimiteInferior IS NULL
-                   OR LimiteInferior <= @IMC
-                ORDER BY
-                    CASE WHEN LimiteInferior IS NULL
-                         THEN 1 ELSE 0 END,
-                    LimiteInferior DESC;";
-
-            using (SqlCommand comando =
-                new SqlCommand(sql, conexion, transaccion))
-            {
-                SqlParameter parametro =
-                    comando.Parameters.Add(
-                        "@IMC", SqlDbType.Decimal);
-
-                parametro.Precision = 5;
-                parametro.Scale = 1;
-                parametro.Value = imc;
-
-                object? resultado = comando.ExecuteScalar();
-
-                if (resultado == null ||
-                    resultado == DBNull.Value)
-                {
-                    throw new InvalidOperationException(
-                        "No se encontró una categoría para el IMC.");
-                }
-
-                return Convert.ToInt32(resultado);
-            }
-        }
-
-        // Guardar paciente y primera consulta
-        private void btnGuardar_Click(
+        private void Guardar_Click(
             object? sender, EventArgs e)
         {
-            if (!ValidarDatos())
+            try
+            {
+                ValidarDatos();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "Validación",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
                 return;
+            }
 
             DialogResult respuesta = MessageBox.Show(
-                "¿Deseas registrar este paciente y su primera consulta?",
+                "¿Guardar paciente y primera consulta " +
+                "en ClinicaDB_Pruebas?",
                 "Confirmar registro",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
@@ -438,16 +379,20 @@ namespace ClinicaSaludBienestar
             try
             {
                 decimal imc = ObtenerIMC();
+                int pacienteId;
+                int consultaId;
+                string nombreCategoria;
 
+                // Nunca utilizar ConexionBD para escribir.
                 using (SqlConnection conexion =
-                    ConexionBD.CrearConexion())
+                    ConexionPruebas.CrearConexion())
                 {
                     conexion.Open();
+                    ConexionPruebas.VerificarBase(conexion);
 
                     using (SqlTransaction transaccion =
                         conexion.BeginTransaction())
                     {
-                        // Insertar paciente
                         string sqlPaciente = @"
                             INSERT INTO dbo.Paciente
                                 (Nombre, Apellido, Genero,
@@ -455,15 +400,11 @@ namespace ClinicaSaludBienestar
                             OUTPUT INSERTED.PacienteId
                             VALUES
                                 (@Nombre, @Apellido, @Genero,
-                                 @FechaNacimiento);";
-
-                        int pacienteId;
+                                 @Nacimiento);";
 
                         using (SqlCommand comando =
                             new SqlCommand(
-                                sqlPaciente,
-                                conexion,
-                                transaccion))
+                                sqlPaciente, conexion, transaccion))
                         {
                             comando.Parameters.Add(
                                 "@Nombre", SqlDbType.NVarChar, 60
@@ -475,35 +416,69 @@ namespace ClinicaSaludBienestar
 
                             comando.Parameters.Add(
                                 "@Genero", SqlDbType.Char, 1
-                            ).Value = cmbGenero.SelectedIndex == 0
-                                ? "M" : "F";
+                            ).Value =
+                                cmbGenero.SelectedIndex == 0
+                                    ? "M" : "F";
 
                             comando.Parameters.Add(
-                                "@FechaNacimiento", SqlDbType.Date
+                                "@Nacimiento", SqlDbType.Date
                             ).Value = dtpNacimiento.Value.Date;
 
                             pacienteId = Convert.ToInt32(
                                 comando.ExecuteScalar());
                         }
 
-                        // Categoría según los rangos de SQL
-                        int categoriaId = ObtenerCategoria(
-                            conexion, transaccion, imc);
+                        string sqlCategoria = @"
+                            SELECT TOP (1)
+                                CategoriaId, Nombre
+                            FROM dbo.Categoria
+                            WHERE LimiteInferior IS NULL
+                               OR LimiteInferior <= @IMC
+                            ORDER BY
+                                CASE
+                                    WHEN LimiteInferior IS NULL
+                                    THEN 1 ELSE 0
+                                END,
+                                LimiteInferior DESC;";
 
-                        // Insertar primera consulta
+                        int categoriaId;
+
+                        using (SqlCommand comando =
+                            new SqlCommand(
+                                sqlCategoria, conexion, transaccion))
+                        {
+                            SqlParameter parametro =
+                                comando.Parameters.Add(
+                                    "@IMC", SqlDbType.Decimal);
+
+                            parametro.Precision = 5;
+                            parametro.Scale = 1;
+                            parametro.Value = imc;
+
+                            using (SqlDataReader lector =
+                                comando.ExecuteReader())
+                            {
+                                if (!lector.Read())
+                                    throw new InvalidOperationException(
+                                        "No se encontró la categoría del IMC.");
+
+                                categoriaId = lector.GetInt32(0);
+                                nombreCategoria = lector.GetString(1);
+                            }
+                        }
+
                         string sqlConsulta = @"
                             INSERT INTO dbo.Consulta
                                 (PacienteId, Fecha, Peso,
                                  Estatura, IMC, CategoriaId)
+                            OUTPUT INSERTED.ConsultaId
                             VALUES
                                 (@PacienteId, @Fecha, @Peso,
                                  @Estatura, @IMC, @CategoriaId);";
 
                         using (SqlCommand comando =
                             new SqlCommand(
-                                sqlConsulta,
-                                conexion,
-                                transaccion))
+                                sqlConsulta, conexion, transaccion))
                         {
                             comando.Parameters.Add(
                                 "@PacienteId", SqlDbType.Int
@@ -516,6 +491,7 @@ namespace ClinicaSaludBienestar
                             SqlParameter peso =
                                 comando.Parameters.Add(
                                     "@Peso", SqlDbType.Decimal);
+
                             peso.Precision = 6;
                             peso.Scale = 2;
                             peso.Value = nudPeso.Value;
@@ -523,6 +499,7 @@ namespace ClinicaSaludBienestar
                             SqlParameter estatura =
                                 comando.Parameters.Add(
                                     "@Estatura", SqlDbType.Decimal);
+
                             estatura.Precision = 4;
                             estatura.Scale = 2;
                             estatura.Value = nudEstatura.Value;
@@ -530,6 +507,7 @@ namespace ClinicaSaludBienestar
                             SqlParameter valorIMC =
                                 comando.Parameters.Add(
                                     "@IMC", SqlDbType.Decimal);
+
                             valorIMC.Precision = 5;
                             valorIMC.Scale = 1;
                             valorIMC.Value = imc;
@@ -538,29 +516,38 @@ namespace ClinicaSaludBienestar
                                 "@CategoriaId", SqlDbType.Int
                             ).Value = categoriaId;
 
-                            comando.ExecuteNonQuery();
+                            consultaId = Convert.ToInt32(
+                                comando.ExecuteScalar());
                         }
 
                         transaccion.Commit();
-
-                        MessageBox.Show(
-                            "Paciente registrado correctamente.\n" +
-                            "ID asignado: " + pacienteId +
-                            "\nIMC: " + imc.ToString("F1"),
-                            "Registro exitoso",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information);
-
-                        Limpiar();
                     }
                 }
+
+                RegistroRealizado = true;
+                lblCategoria.Text =
+                    "Categoría: " + nombreCategoria;
+
+                MessageBox.Show(
+                    "Registro exitoso en ClinicaDB_Pruebas.\n\n" +
+                    "Paciente ID: " + pacienteId + "\n" +
+                    "Consulta ID: " + consultaId + "\n" +
+                    "IMC: " + imc.ToString("F1") + "\n" +
+                    "Categoría: " + nombreCategoria,
+                    "Registro completado",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+
+                DialogResult = DialogResult.OK;
+                Close();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    "No se pudo guardar el registro.\n" +
+                    "No se pudo completar el registro.\n" +
+                    "No se guardará un paciente sin su consulta.\n\n" +
                     ex.Message,
-                    "Error",
+                    "Error de registro",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -570,7 +557,6 @@ namespace ClinicaSaludBienestar
             }
         }
 
-        // Limpiar campos
         private void Limpiar()
         {
             txtNombre.Clear();
@@ -580,10 +566,7 @@ namespace ClinicaSaludBienestar
             dtpConsulta.Value = fechaCorte;
             nudPeso.Value = 75m;
             nudEstatura.Value = 1.75m;
-            lblCategoria.Text =
-                "La categoría se asignará desde Azure SQL";
-
-            CalcularIMC();
+            ActualizarIMC();
             txtNombre.Focus();
         }
     }

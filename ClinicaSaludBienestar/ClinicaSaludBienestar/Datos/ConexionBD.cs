@@ -10,7 +10,7 @@ namespace ClinicaSaludBienestar.Datos
         private const string Servidor =
             "sql-hpa3-grupo1.database.windows.net";
 
-        private const string BaseDatos = "ClinicaDB";
+        private const string BaseDatos = "ClinicaDB_Pruebas";
 
         private const string Usuario = "gio_app";
 
